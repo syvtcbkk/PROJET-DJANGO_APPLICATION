@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block title %}Confirmer la suppression — FacturePro{% endblock %}
+{% block page_title %}Suppression{% endblock %}
+
+{% block content %}
+<div style="max-width:480px;margin:3rem auto;">
+  <div class="card">
+    <div class="card-header">
+      <h2 style="color:var(--danger);">Confirmer la suppression</h2>
+    </div>
+    <div class="card-body">
+      <p style="font-size:14px;color:var(--text);margin-bottom:1.5rem;">
+        Êtes-vous sûr de vouloir supprimer <strong>{{ object }}</strong> ?
+        <br><span style="color:var(--danger);font-size:13px;margin-top:6px;display:block;">Cette action est irréversible.</span>
+      </p>
+      <form method="post">
+        {% csrf_token %}
+        <div class="form-actions">
+          <button type="submit" class="btn btn-danger">Oui, supprimer</button>
+          <a href="{{ cancel_url }}" class="btn btn-outline">Annuler</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

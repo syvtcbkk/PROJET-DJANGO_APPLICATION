@@ -1,0 +1,227 @@
+{% extends 'base.html' %}
+{% block title %}{% if facture %}Éditer{% else %}Nouvelle{% endif %} facture — FacturePro{% endblock %}
+{% block page_title %}{% if facture %}Éditer la facture{% else %}Nouvelle facture{% endif %}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>{% if facture %}Modifier FAC-{{ facture.pk|stringformat:"04d" }}{% else %}Nouvelle facture{% endif %}</h1>
+    <p>{% if facture %}Mettre à jour les informations{% else %}Créer et paramétrer une nouvelle facture{% endif %}</p>
+  </div>
+  <a href="{% url 'facture_list' %}" class="btn btn-outline">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15,18 9,12 15,6"/></svg>
+    Retour
+  </a>
+</div>
+
+<form method="post" id="factureForm">
+  {% csrf_token %}
+
+  <div style="display:grid;grid-template-columns:1fr 340px;gap:16px;align-items:start;">
+
+    <!-- LEFT -->
+    <div style="display:flex;flex-direction:column;gap:16px;">
+
+      <!-- Infos générales -->
+      <div class="card">
+        <div class="card-header"><h2>Informations générales</h2></div>
+        <div class="card-body">
+          <div class="form-grid form-grid-2">
+            <div class="form-group">
+              <label for="id_client">Client *</label>
+              <select name="client_id" id="id_client" required>
+                <option value="">— Sélectionner —</option>
+                {% for c in clients %}
+                <option value="{{ c.pk }}" {% if facture.client_id == c.pk or request.GET.client == c.pk|stringformat:"s" %}selected{% endif %}>{{ c.nom }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="id_date">Date *</label>
+              <input type="date" name="date" id="id_date" value="{{ facture.date|date:'Y-m-d'|default:today }}" required>
+            </div>
+            <div class="form-group">
+              <label for="id_statut">Statut</label>
+              <select name="statut" id="id_statut">
+                <option value="brouillon" {% if facture.statut == 'brouillon' or not facture %}selected{% endif %}>Brouillon</option>
+                <option value="envoyee"  {% if facture.statut == 'envoyee' %}selected{% endif %}>Envoyée</option>
+                <option value="payee"    {% if facture.statut == 'payee' %}selected{% endif %}>Payée</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Lignes de facturation -->
+      <div class="card">
+        <div class="card-header">
+          <h2>Lignes de facturation</h2>
+          <button type="button" class="btn btn-outline btn-sm" onclick="addLine()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:13px;height:13px;"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Ajouter une ligne
+          </button>
+        </div>
+        <div class="card-body" style="padding:0;">
+          <table style="width:100%;border-collapse:collapse;font-size:13.5px;" id="lignesTable">
+            <thead>
+              <tr style="background:var(--bg);">
+                <th style="padding:0.6rem 1rem;text-align:left;font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:0.6px;color:var(--muted);border-bottom:1px solid var(--border);">Désignation</th>
+                <th style="padding:0.6rem 1rem;text-align:right;font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:0.6px;color:var(--muted);border-bottom:1px solid var(--border);width:90px;">Qté</th>
+                <th style="padding:0.6rem 1rem;text-align:right;font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:0.6px;color:var(--muted);border-bottom:1px solid var(--border);width:130px;">Prix unit.</th>
+                <th style="padding:0.6rem 1rem;text-align:right;font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:0.6px;color:var(--muted);border-bottom:1px solid var(--border);width:130px;">Total HT</th>
+                <th style="padding:0.6rem 1rem;border-bottom:1px solid var(--border);width:40px;"></th>
+              </tr>
+            </thead>
+            <tbody id="lignesBody">
+              {% for ligne in lignes %}
+              <tr class="ligne-row" data-index="{{ forloop.counter0 }}">
+                <td style="padding:0.6rem 1rem;">
+                  <input type="text" name="designation[]" value="{{ ligne.designation }}" placeholder="Description du service ou produit" required
+                    style="width:100%;padding:0.45rem 0.6rem;border:1px solid var(--border);border-radius:6px;font-size:13.5px;font-family:inherit;outline:none;">
+                </td>
+                <td style="padding:0.6rem 0.5rem;">
+                  <input type="number" name="quantite[]" value="{{ ligne.quantite }}" min="1" step="1" required class="qty-input"
+                    style="width:100%;padding:0.45rem 0.5rem;border:1px solid var(--border);border-radius:6px;font-size:13.5px;font-family:'DM Mono',monospace;text-align:right;outline:none;" oninput="recalc()">
+                </td>
+                <td style="padding:0.6rem 0.5rem;">
+                  <input type="number" name="prix_unit[]" value="{{ ligne.prix_unit }}" min="0" step="0.01" required class="price-input"
+                    style="width:100%;padding:0.45rem 0.5rem;border:1px solid var(--border);border-radius:6px;font-size:13.5px;font-family:'DM Mono',monospace;text-align:right;outline:none;" oninput="recalc()">
+                </td>
+                <td style="padding:0.6rem 0.5rem;text-align:right;font-family:'DM Mono',monospace;font-size:13.5px;color:var(--text);" class="line-total">
+                  {{ ligne.quantite|default:0 }}
+                </td>
+                <td style="padding:0.6rem 0.5rem;text-align:center;">
+                  <button type="button" onclick="removeLine(this)" style="background:none;border:none;cursor:pointer;color:var(--danger);font-size:16px;line-height:1;padding:4px;">×</button>
+                </td>
+              </tr>
+              {% empty %}
+              <!-- Default empty line -->
+              {% endfor %}
+            </tbody>
+          </table>
+
+          {% if not lignes %}
+          <script>document.addEventListener('DOMContentLoaded', () => addLine());</script>
+          {% endif %}
+        </div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT: Totaux -->
+    <div>
+      <div class="card" style="position:sticky;top:72px;">
+        <div class="card-header"><h2>Récapitulatif</h2></div>
+        <div class="card-body">
+          <div style="font-size:13.5px;">
+            <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);">
+              <span style="color:var(--muted);">Total HT</span>
+              <span id="totalHT" style="font-family:'DM Mono',monospace;font-weight:500;">0</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);align-items:center;">
+              <span style="color:var(--muted);">TVA</span>
+              <div style="display:flex;align-items:center;gap:6px;">
+                <select id="tvaPct" onchange="recalc()" style="padding:3px 6px;border:1px solid var(--border);border-radius:6px;font-size:12px;font-family:inherit;outline:none;">
+                  <option value="0">0%</option>
+                  <option value="5">5%</option>
+                  <option value="10">10%</option>
+                  <option value="18" selected>18%</option>
+                  <option value="20">20%</option>
+                </select>
+                <span id="totalTVA" style="font-family:'DM Mono',monospace;">0</span>
+              </div>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:12px 0;font-weight:600;font-size:15px;">
+              <span>Total TTC</span>
+              <span id="totalTTC" style="font-family:'DM Mono',monospace;color:var(--accent);">0</span>
+            </div>
+          </div>
+
+          <!-- Hidden fields -->
+          <input type="hidden" name="montant_ht"    id="hiddenHT">
+          <input type="hidden" name="montant_tva"   id="hiddenTVA">
+          <input type="hidden" name="montant_total" id="hiddenTTC">
+          <input type="hidden" name="taux_tva"      id="hiddenTauxTVA" value="18">
+
+          <div class="divider"></div>
+
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20,6 9,17 4,12"/></svg>
+              {% if facture %}Enregistrer{% else %}Créer la facture{% endif %}
+            </button>
+            <a href="{% url 'facture_list' %}" class="btn btn-outline" style="width:100%;justify-content:center;">Annuler</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</form>
+
+<script>
+const fmt = n => new Intl.NumberFormat('fr-FR').format(Math.round(n));
+
+function recalc() {
+  const rows = document.querySelectorAll('.ligne-row');
+  let ht = 0;
+  rows.forEach(row => {
+    const q = parseFloat(row.querySelector('.qty-input').value) || 0;
+    const p = parseFloat(row.querySelector('.price-input').value) || 0;
+    const t = q * p;
+    row.querySelector('.line-total').textContent = fmt(t);
+    ht += t;
+  });
+  const pct = parseFloat(document.getElementById('tvaPct').value) || 0;
+  const tva = ht * pct / 100;
+  const ttc = ht + tva;
+
+  document.getElementById('totalHT').textContent  = fmt(ht);
+  document.getElementById('totalTVA').textContent = fmt(tva);
+  document.getElementById('totalTTC').textContent = fmt(ttc);
+
+  document.getElementById('hiddenHT').value     = ht.toFixed(2);
+  document.getElementById('hiddenTVA').value    = tva.toFixed(2);
+  document.getElementById('hiddenTTC').value    = ttc.toFixed(2);
+  document.getElementById('hiddenTauxTVA').value = pct;
+}
+
+function addLine() {
+  const tbody = document.getElementById('lignesBody');
+  const idx = tbody.querySelectorAll('tr').length;
+  const tr = document.createElement('tr');
+  tr.className = 'ligne-row';
+  tr.dataset.index = idx;
+  tr.innerHTML = `
+    <td style="padding:0.6rem 1rem;">
+      <input type="text" name="designation[]" placeholder="Description du service ou produit" required
+        style="width:100%;padding:0.45rem 0.6rem;border:1px solid var(--border);border-radius:6px;font-size:13.5px;font-family:inherit;outline:none;">
+    </td>
+    <td style="padding:0.6rem 0.5rem;">
+      <input type="number" name="quantite[]" value="1" min="1" step="1" required class="qty-input"
+        style="width:100%;padding:0.45rem 0.5rem;border:1px solid var(--border);border-radius:6px;font-size:13.5px;font-family:'DM Mono',monospace;text-align:right;outline:none;" oninput="recalc()">
+    </td>
+    <td style="padding:0.6rem 0.5rem;">
+      <input type="number" name="prix_unit[]" value="0" min="0" step="0.01" required class="price-input"
+        style="width:100%;padding:0.45rem 0.5rem;border:1px solid var(--border);border-radius:6px;font-size:13.5px;font-family:'DM Mono',monospace;text-align:right;outline:none;" oninput="recalc()">
+    </td>
+    <td style="padding:0.6rem 0.5rem;text-align:right;font-family:'DM Mono',monospace;font-size:13.5px;" class="line-total">0</td>
+    <td style="padding:0.6rem 0.5rem;text-align:center;">
+      <button type="button" onclick="removeLine(this)" style="background:none;border:none;cursor:pointer;color:var(--danger);font-size:16px;line-height:1;padding:4px;">×</button>
+    </td>
+  `;
+  tbody.appendChild(tr);
+  tr.querySelector('input[name="designation[]"]').focus();
+}
+
+function removeLine(btn) {
+  const row = btn.closest('tr');
+  if (document.querySelectorAll('.ligne-row').length > 1) {
+    row.remove();
+    recalc();
+  }
+}
+
+document.addEventListener('DOMContentLoaded', recalc);
+</script>
+{% endblock %}

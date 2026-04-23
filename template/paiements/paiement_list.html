@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+{% block title %}Paiements — FacturePro{% endblock %}
+{% block page_title %}Paiements{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Paiements</h1>
+    <p>Historique de tous les règlements</p>
+  </div>
+  <a href="{% url 'paiement_create' %}" class="btn btn-primary">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    Nouveau paiement
+  </a>
+</div>
+
+<!-- Stats -->
+<div class="stats-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:1.5rem;">
+  <div class="stat-card">
+    <div class="stat-label">Total encaissé</div>
+    <div class="stat-value success">{{ total_paiements|floatformat:0|default:"0" }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Ce mois</div>
+    <div class="stat-value accent">{{ paiements_mois|floatformat:0|default:"0" }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Nb. transactions</div>
+    <div class="stat-value">{{ paiements.count }}</div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Facture</th>
+          <th>Client</th>
+          <th>Montant</th>
+          <th>Mode</th>
+          <th>Date</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in paiements %}
+        <tr>
+          <td>
+            <a href="{% url 'facture_detail' p.facture.pk %}" style="color:var(--accent);font-family:'DM Mono',monospace;font-size:13px;">
+              FAC-{{ p.facture.pk|stringformat:"04d" }}
+            </a>
+          </td>
+          <td style="font-weight:500;">{{ p.facture.client.nom }}</td>
+          <td style="font-family:'DM Mono',monospace;font-weight:600;color:var(--success);">{{ p.montant|floatformat:0 }}</td>
+          <td>
+            {% if p.mode == 'especes' %}
+              <span class="badge badge-warning">Espèces</span>
+            {% elif p.mode == 'virement' %}
+              <span class="badge badge-info">Virement</span>
+            {% elif p.mode == 'cheque' %}
+              <span class="badge badge-gray">Chèque</span>
+            {% elif p.mode == 'mobile' %}
+              <span class="badge badge-success">Mobile Money</span>
+            {% else %}
+              <span class="badge badge-gray">{{ p.mode }}</span>
+            {% endif %}
+          </td>
+          <td style="color:var(--muted);font-size:13px;">{{ p.date|date:"d/m/Y" }}</td>
+          <td>
+            <a href="{% url 'paiement_delete' p.pk %}" class="btn btn-sm" style="background:var(--danger-light);color:var(--danger);border:none;" onclick="return confirm('Supprimer ce paiement ?')">Suppr.</a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="6">
+            <div class="empty-state">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+              <p>Aucun paiement enregistré</p>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
