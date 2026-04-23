@@ -1,11 +1,6 @@
 from django import forms
 from django.db import models
-from .models import Client
 
-class clientform(forms.modelsForm):
-    class meta:
-        model = Client
-        fields = ['__all__']
 
 class Client(models.Model):
     nom       = models.CharField(max_length=200)
@@ -15,3 +10,8 @@ class Client(models.Model):
 
     def __str__(self):
         return self.nom
+
+class ClientForm(forms.ModelForm): 
+    class Meta:
+        model = Client
+        fields = '__all__' 
