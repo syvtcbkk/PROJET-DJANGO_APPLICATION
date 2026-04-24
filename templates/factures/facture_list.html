@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+
+{% block title %}Liste des Factures{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <h1>Liste des Factures</h1>
+        <a href="{% url 'facture_create' %}" class="btn btn-primary">+ Nouvelle Facture</a>
+    </div>
+    
+    <form method="get" style="margin-bottom: 1rem; padding: 1rem; background: #f8f9fa; border-radius: 4px;">
+        <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+            <div>
+                <label>Statut:</label>
+                <select name="statut">
+                    <option value="">Tous</option>
+                    <option value="brouillon">Brouillon</option>
+                    <option value="envoyee">Envoyée</option>
+                    <option value="payee">Payée</option>
+                </select>
+            </div>
+            <div>
+                <label>Du:</label>
+                <input type="date" name="date_debut">
+            </div>
+            <div>
+                <label>Au:</label>
+                <input type="date" name="date_fin">
+            </div>
+            <button type="submit" class="btn btn-primary">Filtrer</button>
+        </div>
+    </form>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>N° Facture</th>
+                <th>Client</th>
+                <th>Date</th>
+                <th>Montant HT</th>
+                <th>TVA</th>
+                <th>Total</th>
+                <th>Statut</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for facture in factures %}
+            <tr>
+                <td>FAC-{{ facture.pk|stringformat:"04d" }}</td>
+                <td>{{ facture.client.nom }}</td>
+                <td>{{ facture.date }}</td>
+                <td>{{ facture.montant_ht }} €</td>
+                <td>{{ facture.montant_tva }} €</td>
+                <td><strong>{{ facture.montant_total }} €</strong></td>
+                <td>
+                    <span style="padding: 0.25rem 0.5rem; border-radius: 4px; 
+                        {% if facture.statut == 'payee' %}background: #27ae60; color: white;
+                        {% elif facture.statut == 'envoyee' %}background: #3498db; color: white;
+                        {% else %}background: #95a5a6; color: white;{% endif %}">
+                        {{ facture.get_statut_display }}
+                    </span>
+                </td>
+                <td>
+                    <a href="{% url 'facture_detail' facture.pk %}" class="btn btn-primary">Voir</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="8" style="text-align: center;">Aucune facture trouvée.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

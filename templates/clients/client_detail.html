@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+
+{% block title %}Détails du Client{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <h1>{{ client.nom }}</h1>
+        <div>
+            <a href="{% url 'client_edit' client.pk %}" class="btn btn-warning">Modifier</a>
+            <a href="{% url 'client_delete' client.pk %}" class="btn btn-danger">Supprimer</a>
+            <a href="{% url 'client_list' %}" class="btn btn-primary">Retour</a>
+        </div>
+    </div>
+    
+    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
+        <div>
+            <p><strong>Email:</strong> {{ client.email }}</p>
+            <p><strong>Téléphone:</strong> {{ client.telephone|default:"-" }}</p>
+        </div>
+        <div>
+            <p><strong>Adresse:</strong> {{ client.adresse|default:"-" }}</p>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <h2>Factures du Client</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>N° Facture</th>
+                <th>Date</th>
+                <th>Montant HT</th>
+                <th>TVA</th>
+                <th>Total</th>
+                <th>Statut</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for facture in factures %}
+            <tr>
+                <td>FAC-{{ facture.pk|stringformat:"04d" }}</td>
+                <td>{{ facture.date }}</td>
+                <td>{{ facture.montant_ht }} €</td>
+                <td>{{ facture.montant_tva }} €</td>
+                <td><strong>{{ facture.montant_total }} €</strong></td>
+                <td>
+                    <span style="padding: 0.25rem 0.5rem; border-radius: 4px; 
+                        {% if facture.statut == 'payee' %}background: #27ae60; color: white;
+                        {% elif facture.statut == 'envoyee' %}background: #3498db; color: white;
+                        {% else %}background: #95a5a6; color: white;{% endif %}">
+                        {{ facture.get_statut_display }}
+                    </span>
+                </td>
+                <td>
+                    <a href="{% url 'facture_detail' facture.pk %}" class="btn btn-primary">Voir</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="7" style="text-align: center;">Aucune facture trouvée.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+
+{% block title %}Détails de la Facture{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <h1>Facture FAC-{{ facture.pk|stringformat:"04d" }}</h1>
+        <a href="{% url 'facture_list' %}" class="btn btn-primary">Retour</a>
+    </div>
+    
+    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 2rem;">
+        <div>
+            <h3>Informations Client</h3>
+            <p><strong>Nom:</strong> {{ facture.client.nom }}</p>
+            <p><strong>Email:</strong> {{ facture.client.email }}</p>
+            <p><strong>Téléphone:</strong> {{ facture.client.telephone|default:"-" }}</p>
+        </div>
+        <div>
+            <h3>Informations Facture</h3>
+            <p><strong>Date:</strong> {{ facture.date }}</p>
+            <p><strong>Statut:</strong> 
+                <span style="padding: 0.25rem 0.5rem; border-radius: 4px; 
+                    {% if facture.statut == 'payee' %}background: #27ae60; color: white;
+                    {% elif facture.statut == 'envoyee' %}background: #3498db; color: white;
+                    {% else %}background: #95a5a6; color: white;{% endif %}">
+                    {{ facture.get_statut_display }}
+                </span>
+            </p>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <h2>Détail des Lignes</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Désignation</th>
+                <th>Quantité</th>
+                <th>Prix Unitaire</th>
+                <th>Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for ligne in facture.lignefacture_set.all %}
+            <tr>
+                <td>{{ ligne.designation }}</td>
+                <td>{{ ligne.quantite }}</td>
+                <td>{{ ligne.prix_unit }} €</td>
+                <td><strong>{{ ligne.quantite|add:ligne.prix_unit|mul:1 }} €</strong></td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4" style="text-align: center;">Aucune ligne de facture.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="card">
+    <h2>Résumé Financier</h2>
+    <table>
+        <tr>
+            <td>Montant HT</td>
+            <td style="text-align: right;"><strong>{{ facture.montant_ht }} €</strong></td>
+        </tr>
+        <tr>
+            <td>TVA ({{ facture.taux_tva }}%)</td>
+            <td style="text-align: right;">{{ facture.montant_tva }} €</td>
+        </tr>
+        <tr>
+            <td><strong>Total TTC</strong></td>
+            <td style="text-align: right;"><strong>{{ facture.montant_total }} €</strong></td>
+        </tr>
+    </table>
+</div>
+
+<div class="card">
+    <h2>Paiements</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Montant</th>
+                <th>Mode</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for paiement in facture.paiement_set.all %}
+            <tr>
+                <td>{{ paiement.date }}</td>
+                <td>{{ paiement.montant }} €</td>
+                <td>{{ paiement.get_mode_display }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="3" style="text-align: center;">Aucun paiement enregistré.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <p style="margin-top: 1rem;"><strong>Solde Restant:</strong> {{ facture.solde_restant }} €</p>
+</div>
+{% endblock %}

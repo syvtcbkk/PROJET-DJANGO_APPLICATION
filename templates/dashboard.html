@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="stats">
+    <div class="stat-card">
+        <h3>{{ nb_clients }}</h3>
+        <p>Clients</p>
+    </div>
+    <div class="stat-card">
+        <h3>{{ total_facture }} €</h3>
+        <p>Total Factures</p>
+    </div>
+    <div class="stat-card">
+        <h3>{{ total_paye }} €</h3>
+        <p>Total Payé</p>
+    </div>
+    <div class="stat-card">
+        <h3>{{ total_impaye }} €</h3>
+        <p>Total Impayé</p>
+    </div>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
+    <div class="card">
+        <h2>Dernières Factures</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>N°</th>
+                    <th>Client</th>
+                    <th>Date</th>
+                    <th>Montant</th>
+                    <th>Statut</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for facture in dernieres_factures %}
+                <tr>
+                    <td>FAC-{{ facture.pk|stringformat:"04d" }}</td>
+                    <td>{{ facture.client.nom }}</td>
+                    <td>{{ facture.date }}</td>
+                    <td>{{ facture.montant_total }} €</td>
+                    <td>
+                        <span style="padding: 0.25rem 0.5rem; border-radius: 4px; 
+                            {% if facture.statut == 'payee' %}background: #27ae60; color: white;
+                            {% elif facture.statut == 'envoyee' %}background: #3498db; color: white;
+                            {% else %}background: #95a5a6; color: white;{% endif %}">
+                            {{ facture.get_statut_display }}
+                        </span>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" style="text-align: center;">Aucune facture</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <div class="card">
+        <h2>Derniers Paiements</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Facture</th>
+                    <th>Montant</th>
+                    <th>Mode</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for paiement in derniers_paiements %}
+                <tr>
+                    <td>{{ paiement.date }}</td>
+                    <td>FAC-{{ paiement.facture.pk|stringformat:"04d" }}</td>
+                    <td>{{ paiement.montant }} €</td>
+                    <td>{{ paiement.get_mode_display }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" style="text-align: center;">Aucun paiement</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

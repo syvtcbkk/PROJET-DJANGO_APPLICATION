@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if client %}Modifier{% else %}Nouveau{% endif %} Client{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h1>{% if client %}Modifier{% else %}Nouveau{% endif %} Client</h1>
+    
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="nom">Nom *</label>
+            <input type="text" id="nom" name="nom" value="{{ form.nom|default:'' }}" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="email">Email *</label>
+            <input type="email" id="email" name="email" value="{{ form.email|default:'' }}" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="telephone">Téléphone</label>
+            <input type="text" id="telephone" name="telephone" value="{{ form.telephone|default:'' }}">
+        </div>
+        
+        <div class="form-group">
+            <label for="adresse">Adresse</label>
+            <textarea id="adresse" name="adresse" rows="3">{{ form.adresse|default:'' }}</textarea>
+        </div>
+        
+        <div style="margin-top: 1rem;">
+            <button type="submit" class="btn btn-success">Enregistrer</button>
+            <a href="{% url 'client_list' %}" class="btn btn-danger">Annuler</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block title %}Nouveau Paiement{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h1>Nouveau Paiement</h1>
+    
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="facture_id">Facture *</label>
+            <select id="facture_id" name="facture_id" required>
+                <option value="">Sélectionner une facture</option>
+                {% for facture in factures %}
+                <option value="{{ facture.pk }}">
+                    FAC-{{ facture.pk|stringformat:"04d" }} - {{ facture.client.nom }} - {{ facture.montant_total }} € (Restant: {{ facture.solde_restant }} €)
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="montant">Montant *</label>
+            <input type="number" id="montant" name="montant" step="0.01" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="date">Date *</label>
+            <input type="date" id="date" name="date" value="{{ today }}" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="mode">Mode de Paiement *</label>
+            <select id="mode" name="mode" required>
+                <option value="especes">Espèces</option>
+                <option value="virement">Virement</option>
+                <option value="cheque">Chèque</option>
+                <option value="mobile">Mobile Money</option>
+                <option value="carte">Carte bancaire</option>
+            </select>
+        </div>
+        
+        <div style="margin-top: 1rem;">
+            <button type="submit" class="btn btn-success">Enregistrer</button>
+            <a href="{% url 'paiement_list' %}" class="btn btn-danger">Annuler</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

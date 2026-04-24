@@ -1,4 +1,3 @@
-from django import forms
 from django.db import models
 
 
@@ -9,9 +8,4 @@ class Client(models.Model):
     adresse   = models.TextField(blank=True)
 
     def __str__(self):
-        return self.nom
-
-class ClientForm(forms.ModelForm): 
-    class Meta:
-        model = Client
-        fields = '__all__' 
+        return self.nom 

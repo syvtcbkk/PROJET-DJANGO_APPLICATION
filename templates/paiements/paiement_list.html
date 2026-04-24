@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+
+{% block title %}Liste des Paiements{% endblock %}
+
+{% block content %}
+<div class="stats">
+    <div class="stat-card">
+        <h3>{{ total_paiements }} €</h3>
+        <p>Total des Paiements</p>
+    </div>
+    <div class="stat-card">
+        <h3>{{ paiements_mois }} €</h3>
+        <p>Paiements ce Mois</p>
+    </div>
+    <div class="stat-card">
+        <h3>{{ paiements|length }}</h3>
+        <p>Nombre de Paiements</p>
+    </div>
+</div>
+
+<div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <h1>Liste des Paiements</h1>
+        <a href="{% url 'paiement_create' %}" class="btn btn-primary">+ Nouveau Paiement</a>
+    </div>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Facture</th>
+                <th>Client</th>
+                <th>Montant</th>
+                <th>Mode</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for paiement in paiements %}
+            <tr>
+                <td>{{ paiement.date }}</td>
+                <td>FAC-{{ paiement.facture.pk|stringformat:"04d" }}</td>
+                <td>{{ paiement.facture.client.nom }}</td>
+                <td><strong>{{ paiement.montant }} €</strong></td>
+                <td>{{ paiement.get_mode_display }}</td>
+                <td>
+                    <a href="{% url 'paiement_delete' paiement.pk %}" class="btn btn-danger">Supprimer</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6" style="text-align: center;">Aucun paiement trouvé.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
