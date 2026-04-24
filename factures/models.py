@@ -24,6 +24,11 @@ class Facture(models.Model):
         self.montant_total = self.montant_ht + self.montant_tva
         super().save(*args, **kwargs)
 
+    @property
+    def solde_restant(self):
+        total_paye = sum(p.montant for p in self.paiement_set.all())
+        return self.montant_total - total_paye
+
 
 class LigneFacture(models.Model):
     facture     = models.ForeignKey(Facture, on_delete=models.CASCADE)
@@ -32,11 +37,5 @@ class LigneFacture(models.Model):
     prix_unit   = models.DecimalField(max_digits=12, decimal_places=2)
 
     @property
-    def calcul_total(self):
-        total = sum(l.quantite*l.prix_unit for l in self.facture.lignefacture_set.all())
-        return total
-
-    @property
-    def solde_restant(self):
-        paye = sum(p.montant for p in self.paiement_set.all())
-        return self.montant_total - paye
+    def total(self):
+        return self.quantite * self.prix_unit

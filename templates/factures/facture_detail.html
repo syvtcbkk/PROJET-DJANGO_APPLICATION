@@ -48,7 +48,7 @@
                 <td>{{ ligne.designation }}</td>
                 <td>{{ ligne.quantite }}</td>
                 <td>{{ ligne.prix_unit }} €</td>
-                <td><strong>{{ ligne.quantite|add:ligne.prix_unit|mul:1 }} €</strong></td>
+                <td><strong>{{ ligne.total }} €</strong></td>
             </tr>
             {% empty %}
             <tr>
