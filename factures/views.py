@@ -21,13 +21,13 @@ def facture_create(request):
     clients = Client.objects.all()
     if request.method == 'POST':
         facture = Facture.objects.create(
-            client_id   = request.POST['client_id'],
-            date        = request.POST['date'],
-            statut      = request.POST['statut'],
-            montant_ht  = request.POST.get('montant_ht', 0),
-            taux_tva    = request.POST.get('taux_tva', 18),
-            montant_tva = request.POST.get('montant_tva', 0),
-            montant_total = request.POST.get('montant_total', 0),
+            client_id     = request.POST['client_id'],
+            date          = request.POST['date'],
+            statut        = request.POST['statut'],
+            montant_ht    = request.POST.get('montant_ht', 0) or 0,
+            taux_tva      = request.POST.get('taux_tva', 18) or 18,
+            montant_tva   = request.POST.get('montant_tva', 0) or 0,
+            montant_total = request.POST.get('montant_total', 0) or 0,
         )
         designations = request.POST.getlist('designation[]')
         quantites    = request.POST.getlist('quantite[]')
@@ -35,7 +35,10 @@ def facture_create(request):
         for d, q, p in zip(designations, quantites, prix_units):
             if d.strip():
                 LigneFacture.objects.create(
-                    facture=facture, designation=d, quantite=q, prix_unit=p
+                    facture=facture,
+                    designation=d,
+                    quantite=q or 0,
+                    prix_unit=p or 0,
                 )
         return redirect('facture_detail', pk=facture.pk)
     return render(request, 'factures/facture_form.html', {
@@ -48,13 +51,13 @@ def facture_edit(request, pk):
     facture = get_object_or_404(Facture, pk=pk)
     clients = Client.objects.all()
     if request.method == 'POST':
-        facture.client_id    = request.POST['client_id']
-        facture.date         = request.POST['date']
-        facture.statut       = request.POST['statut']
-        facture.montant_ht   = request.POST.get('montant_ht', 0)
-        facture.taux_tva     = request.POST.get('taux_tva', 18)
-        facture.montant_tva  = request.POST.get('montant_tva', 0)
-        facture.montant_total = request.POST.get('montant_total', 0)
+        facture.client_id     = request.POST['client_id']
+        facture.date          = request.POST['date']
+        facture.statut        = request.POST['statut']
+        facture.montant_ht    = request.POST.get('montant_ht', 0) or 0
+        facture.taux_tva      = request.POST.get('taux_tva', 18) or 18
+        facture.montant_tva   = request.POST.get('montant_tva', 0) or 0
+        facture.montant_total = request.POST.get('montant_total', 0) or 0
         facture.save()
         facture.lignefacture_set.all().delete()
         designations = request.POST.getlist('designation[]')
@@ -63,7 +66,10 @@ def facture_edit(request, pk):
         for d, q, p in zip(designations, quantites, prix_units):
             if d.strip():
                 LigneFacture.objects.create(
-                    facture=facture, designation=d, quantite=q, prix_unit=p
+                    facture=facture,
+                    designation=d,
+                    quantite=q or 0,
+                    prix_unit=p or 0,
                 )
         return redirect('facture_detail', pk=facture.pk)
     return render(request, 'factures/facture_form.html', {
@@ -72,7 +78,6 @@ def facture_edit(request, pk):
         'lignes': facture.lignefacture_set.all(),
         'today': timezone.now().date(),
     })
-
 def facture_send(request, pk):
     facture = get_object_or_404(Facture, pk=pk)
     facture.statut = 'envoyee'

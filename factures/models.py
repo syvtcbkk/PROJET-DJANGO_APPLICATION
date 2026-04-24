@@ -1,5 +1,6 @@
 from django.db import models
 from clients.models import Client
+from decimal import Decimal
 
 class Facture(models.Model):
     STATUTS = [
@@ -15,14 +16,20 @@ class Facture(models.Model):
     montant_tva   = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     montant_total = models.DecimalField(max_digits=12, decimal_places=2, default=0)
 
+    def save(self, *args, **kwargs):
+        self.montant_ht    = Decimal(str(self.montant_ht    or 0))
+        self.taux_tva      = Decimal(str(self.taux_tva      or 0))
+        self.montant_tva   = self.montant_ht * self.taux_tva / 100
+        self.montant_total = self.montant_ht + self.montant_tva
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return f"FAC-{self.pk:04d} - {self.client.nom}"
 
-    def save(self, *args, **kwargs):
-        # Calculer le montant TVA et total
-        self.montant_tva = self.montant_ht * self.taux_tva / 100
-        self.montant_total = self.montant_ht + self.montant_tva
-        super().save(*args, **kwargs)
+    @property
+    def solde_restant(self):
+        paye = sum(p.montant for p in self.paiement_set.all())
+        return self.montant_total - Decimal(str(paye))
 
 
 class LigneFacture(models.Model):
@@ -32,11 +39,5 @@ class LigneFacture(models.Model):
     prix_unit   = models.DecimalField(max_digits=12, decimal_places=2)
 
     @property
-    def calcul_total(self):
-        total = sum(l.quantite*l.prix_unit for l in self.facture.lignefacture_set.all())
-        return total
-
-    @property
-    def solde_restant(self):
-        paye = sum(p.montant for p in self.paiement_set.all())
-        return self.montant_total - paye
+    def total(self):
+        return self.quantite * self.prix_unit
