@@ -1,8 +1,10 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.utils import timezone
+from django.contrib.auth.decorators import login_required
 from .models import Paiement
 from factures.models import Facture
 
+@login_required
 def paiement_list(request):
     paiements = Paiement.objects.select_related('facture__client').all()
     total = sum(p.montant for p in paiements)
@@ -17,6 +19,7 @@ def paiement_list(request):
         'paiements_mois': paiements_mois,
     })
 
+@login_required
 def paiement_create(request):
     factures = Facture.objects.exclude(statut='payee').select_related('client')
     if request.method == 'POST':
@@ -36,6 +39,7 @@ def paiement_create(request):
         'today': timezone.now().date(),
     })
 
+@login_required
 def paiement_delete(request, pk):
     paiement = get_object_or_404(Paiement, pk=pk)
     if request.method == 'POST':

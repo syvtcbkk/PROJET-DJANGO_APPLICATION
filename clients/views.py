@@ -1,15 +1,19 @@
 from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib.auth.decorators import login_required
 from .models import Client
 
+@login_required
 def client_list(request):
     clients = Client.objects.all()
     return render(request, 'clients/client_list.html', {'clients': clients})
 
+@login_required
 def client_detail(request, pk):
-    client = get_object_or_404(Client, pk=pk)
+    client  = get_object_or_404(Client, pk=pk)
     factures = client.facture_set.all()
     return render(request, 'clients/client_detail.html', {'client': client, 'factures': factures})
 
+@login_required
 def client_create(request):
     if request.method == 'POST':
         Client.objects.create(
@@ -21,6 +25,7 @@ def client_create(request):
         return redirect('client_list')
     return render(request, 'clients/client_form.html', {'form': {}})
 
+@login_required
 def client_edit(request, pk):
     client = get_object_or_404(Client, pk=pk)
     if request.method == 'POST':
@@ -32,6 +37,7 @@ def client_edit(request, pk):
         return redirect('client_list')
     return render(request, 'clients/client_form.html', {'form': client, 'client': client})
 
+@login_required
 def client_delete(request, pk):
     client = get_object_or_404(Client, pk=pk)
     if request.method == 'POST':
