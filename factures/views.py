@@ -11,6 +11,13 @@ from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, 
 from reportlab.lib.styles import getSampleStyleSheet
 from django.core.mail import EmailMessage
 import io
+from django.contrib import messages
+import csv
+from django.http import HttpResponse
+import openpyxl
+
+
+
 
 @login_required
 def facture_list(request):
@@ -61,6 +68,7 @@ def facture_create(request):
                     quantite=Decimal(q or 0),
                     prix_unit=Decimal(p or 0)
                 )
+                messages.success(request, "Facture créée avec succès ✅")
         return redirect('facture_detail', pk=facture.pk)
 
     return render(request, 'factures/facture_form.html', {
@@ -103,6 +111,7 @@ def facture_edit(request, pk):
                     quantite=Decimal(q or 0),
                     prix_unit=Decimal(p or 0)
                 )
+                messages.success(request, "Facture modifiée avec succès ✅")
         return redirect('facture_detail', pk=facture.pk)
 
     return render(request, 'factures/facture_form.html', {
@@ -124,6 +133,7 @@ def facture_delete(request, pk):
     facture = get_object_or_404(Facture, pk=pk)
     if request.method == 'POST':
         facture.delete()
+        messages.success(request, "Facture supprimée ✅")
         return redirect('facture_list')
     return render(request, 'confirm_delete.html', {'object': facture, 'cancel_url': '/factures/'})
 
@@ -233,3 +243,62 @@ def facture_email(request, pk):
     from django.contrib import messages
     messages.success(request, f"Facture envoyée à {facture.client.email} ✅")
     return redirect('facture_detail', pk=pk)
+
+def export_csv(request):
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="factures.csv"'
+    
+    writer = csv.writer(response)
+    writer.writerow(['N°', 'Client', 'Date', 'Statut', 'Montant HT', 'TVA', 'Total TTC'])
+    
+    for f in Facture.objects.select_related('client').all():
+        writer.writerow([
+            f"FAC-{f.pk:04d}",
+            f.client.nom,
+            f.date,
+            f.get_statut_display(),
+            f.montant_ht,
+            f.montant_tva,
+            f.montant_total,
+        ])
+    return response
+
+
+def export_excel(request):
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Factures"
+
+    # En-têtes
+    headers = ['N°', 'Client', 'Date', 'Statut', 'Montant HT', 'TVA', 'Total TTC']
+    ws.append(headers)
+
+    # Style en-têtes
+    from openpyxl.styles import Font, PatternFill
+    for cell in ws[1]:
+        cell.font = Font(bold=True, color="FFFFFF")
+        cell.fill = PatternFill("solid", fgColor="2C3E50")
+
+    # Données
+    for f in Facture.objects.select_related('client').all():
+        ws.append([
+            f"FAC-{f.pk:04d}",
+            f.client.nom,
+            str(f.date),
+            f.get_statut_display(),
+            float(f.montant_ht),
+            float(f.montant_tva),
+            float(f.montant_total),
+        ])
+
+    # Ajuster largeur colonnes
+    for col in ws.columns:
+        max_length = max(len(str(cell.value or "")) for cell in col)
+        ws.column_dimensions[col[0].column_letter].width = max_length + 4
+
+    response = HttpResponse(
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    response['Content-Disposition'] = 'attachment; filename="factures.xlsx"'
+    wb.save(response)
+    return response

@@ -9,5 +9,7 @@ urlpatterns = [
     path('<int:pk>/suppr/',     views.facture_delete, name='facture_delete'),
     path('<int:pk>/envoyer/',   views.facture_send,   name='facture_send'),
     path('<int:pk>/pdf/',       views.facture_pdf,    name='facture_pdf'),
-    path('<int:pk>/email/',     views.facture_email,      name='facture_email'),
+    path('<int:pk>/email/',     views.facture_email,  name='facture_email'),
+    path('export/csv/',         views.export_csv,     name='export_csv'),
+    path('export/excel/',       views.export_excel,   name='export_excel'),
 ]

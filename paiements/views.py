@@ -3,6 +3,7 @@ from django.utils import timezone
 from django.contrib.auth.decorators import login_required
 from .models import Paiement
 from factures.models import Facture
+from django.contrib import messages
 
 @login_required
 def paiement_list(request):
@@ -33,6 +34,7 @@ def paiement_create(request):
         if facture.solde_restant <= 0:
             facture.statut = 'payee'
             facture.save()
+            messages.success(request, "Paiement enregistré avec succès ✅")
         return redirect('paiement_list')
     return render(request, 'paiements/paiement_form.html', {
         'factures': factures,
@@ -44,5 +46,6 @@ def paiement_delete(request, pk):
     paiement = get_object_or_404(Paiement, pk=pk)
     if request.method == 'POST':
         paiement.delete()
+        messages.success(request, "Paiement supprimé ✅")
         return redirect('paiement_list')
     return render(request, 'confirm_delete.html', {'object': paiement, 'cancel_url': '/paiements/'})
