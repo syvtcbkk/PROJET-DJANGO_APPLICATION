@@ -43,9 +43,9 @@
             <tr>
                 <td>FAC-{{ facture.pk|stringformat:"04d" }}</td>
                 <td>{{ facture.date }}</td>
-                <td>{{ facture.montant_ht }} €</td>
-                <td>{{ facture.montant_tva }} €</td>
-                <td><strong>{{ facture.montant_total }} €</strong></td>
+                <td>{{ facture.montant_ht }} FCFA</td>
+                <td>{{ facture.montant_tva }} FCFA</td>
+                <td><strong>{{ facture.montant_total }} FCFA</strong></td>
                 <td>
                     <span style="padding: 0.25rem 0.5rem; border-radius: 4px; 
                         {% if facture.statut == 'payee' %}background: #27ae60; color: white;

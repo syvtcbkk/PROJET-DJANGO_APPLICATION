@@ -5,11 +5,11 @@
 {% block content %}
 <div class="stats">
     <div class="stat-card">
-        <h3>{{ total_paiements }} €</h3>
+        <h3>{{ total_paiements }} FCFA</h3>
         <p>Total des Paiements</p>
     </div>
     <div class="stat-card">
-        <h3>{{ paiements_mois }} €</h3>
+        <h3>{{ paiements_mois }} FCFA</h3>
         <p>Paiements ce Mois</p>
     </div>
     <div class="stat-card">
@@ -41,7 +41,7 @@
                 <td>{{ paiement.date }}</td>
                 <td>FAC-{{ paiement.facture.pk|stringformat:"04d" }}</td>
                 <td>{{ paiement.facture.client.nom }}</td>
-                <td><strong>{{ paiement.montant }} €</strong></td>
+                <td><strong>{{ paiement.montant }} FCFA</strong></td>
                 <td>{{ paiement.get_mode_display }}</td>
                 <td>
                     <a href="{% url 'paiement_delete' paiement.pk %}" class="btn btn-danger">Supprimer</a>

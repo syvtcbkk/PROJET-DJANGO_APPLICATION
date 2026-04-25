@@ -9,15 +9,15 @@
         <p>Clients</p>
     </div>
     <div class="stat-card">
-        <h3>{{ total_facture }} €</h3>
+        <h3>{{ total_facture }} FCFA</h3>
         <p>Total Factures</p>
     </div>
     <div class="stat-card">
-        <h3>{{ total_paye }} €</h3>
+        <h3>{{ total_paye }} FCFA</h3>
         <p>Total Payé</p>
     </div>
     <div class="stat-card">
-        <h3>{{ total_impaye }} €</h3>
+        <h3>{{ total_impaye }} FCFA</h3>
         <p>Total Impayé</p>
     </div>
 </div>
@@ -41,7 +41,7 @@
                     <td>FAC-{{ facture.pk|stringformat:"04d" }}</td>
                     <td>{{ facture.client.nom }}</td>
                     <td>{{ facture.date }}</td>
-                    <td>{{ facture.montant_total }} €</td>
+                    <td>{{ facture.montant_total }} FCFA</td>
                     <td>
                         <span style="padding: 0.25rem 0.5rem; border-radius: 4px; 
                             {% if facture.statut == 'payee' %}background: #27ae60; color: white;
@@ -76,7 +76,7 @@
                 <tr>
                     <td>{{ paiement.date }}</td>
                     <td>FAC-{{ paiement.facture.pk|stringformat:"04d" }}</td>
-                    <td>{{ paiement.montant }} €</td>
+                    <td>{{ paiement.montant }} FCFA</td>
                     <td>{{ paiement.get_mode_display }}</td>
                 </tr>
                 {% empty %}

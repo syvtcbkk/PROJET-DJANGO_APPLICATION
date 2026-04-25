@@ -47,8 +47,8 @@
             <tr>
                 <td>{{ ligne.designation }}</td>
                 <td>{{ ligne.quantite }}</td>
-                <td>{{ ligne.prix_unit }} €</td>
-                <td><strong>{{ ligne.total }} €</strong></td>
+                <td>{{ ligne.prix_unit }} FCFA</td>
+                <td><strong>{{ ligne.total }} FCFA</strong></td>
             </tr>
             {% empty %}
             <tr>
@@ -64,15 +64,15 @@
     <table>
         <tr>
             <td>Montant HT</td>
-            <td style="text-align: right;"><strong>{{ facture.montant_ht }} €</strong></td>
+            <td style="text-align: right;"><strong>{{ facture.montant_ht }} FCFA</strong></td>
         </tr>
         <tr>
             <td>TVA ({{ facture.taux_tva }}%)</td>
-            <td style="text-align: right;">{{ facture.montant_tva }} €</td>
+            <td style="text-align: right;">{{ facture.montant_tva }} FCFA</td>
         </tr>
         <tr>
             <td><strong>Total TTC</strong></td>
-            <td style="text-align: right;"><strong>{{ facture.montant_total }} €</strong></td>
+            <td style="text-align: right;"><strong>{{ facture.montant_total }} FCFA</strong></td>
         </tr>
     </table>
 </div>
@@ -91,7 +91,7 @@
             {% for paiement in facture.paiement_set.all %}
             <tr>
                 <td>{{ paiement.date }}</td>
-                <td>{{ paiement.montant }} €</td>
+                <td>{{ paiement.montant }} FCFA</td>
                 <td>{{ paiement.get_mode_display }}</td>
             </tr>
             {% empty %}
@@ -101,6 +101,6 @@
             {% endfor %}
         </tbody>
     </table>
-    <p style="margin-top: 1rem;"><strong>Solde Restant:</strong> {{ facture.solde_restant }} €</p>
+    <p style="margin-top: 1rem;"><strong>Solde Restant:</strong> {{ facture.solde_restant }} FCFA</p>
 </div>
 {% endblock %}
