@@ -4,6 +4,11 @@ from decimal import Decimal
 from django.contrib.auth.decorators import login_required
 from .models import Facture, LigneFacture
 from clients.models import Client
+from django.http import HttpResponse
+from reportlab.lib.pagesizes import A4
+from reportlab.lib import colors
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+from reportlab.lib.styles import getSampleStyleSheet
 
 @login_required
 def facture_list(request):
@@ -124,3 +129,53 @@ def facture_delete(request, pk):
 def facture_pdf(request, pk):
     facture = get_object_or_404(Facture, pk=pk)
     return render(request, 'factures/facture_pdf.html', {'facture': facture})
+
+def facture_pdf(request, pk):
+    facture = get_object_or_404(Facture, pk=pk)
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'filename="facture_{pk}.pdf"'
+
+    doc = SimpleDocTemplate(response, pagesize=A4)
+    styles = getSampleStyleSheet()
+    elements = []
+
+    # Titre
+    elements.append(Paragraph(f"FACTURE N° FAC-{pk:04d}", styles['Title']))
+    elements.append(Spacer(1, 20))
+
+    # Infos client
+    elements.append(Paragraph(f"<b>Client :</b> {facture.client.nom}", styles['Normal']))
+    elements.append(Paragraph(f"<b>Email :</b> {facture.client.email}", styles['Normal']))
+    elements.append(Paragraph(f"<b>Date :</b> {facture.date}", styles['Normal']))
+    elements.append(Paragraph(f"<b>Statut :</b> {facture.get_statut_display()}", styles['Normal']))
+    elements.append(Spacer(1, 20))
+
+    # Tableau des lignes
+    data = [['Désignation', 'Quantité', 'Prix Unit.', 'Sous-total']]
+    for ligne in facture.lignefacture_set.all():
+        data.append([
+            ligne.designation,
+            str(ligne.quantite),
+            f"{ligne.prix_unit} FCFA",
+            f"{ligne.total} FCFA",
+        ])
+
+    # Totaux
+    data.append(['', '', 'Montant HT', f"{facture.montant_ht} FCFA"])
+    data.append(['', '', f"TVA ({facture.taux_tva}%)", f"{facture.montant_tva} FCFA"])
+    data.append(['', '', 'TOTAL TTC', f"{facture.montant_total} FCFA"])
+
+    table = Table(data, colWidths=[250, 70, 100, 100])
+    table.setStyle(TableStyle([
+        ('BACKGROUND', (0,0), (-1,0), colors.HexColor('#2c3e50')),
+        ('TEXTCOLOR',  (0,0), (-1,0), colors.white),
+        ('FONTNAME',   (0,0), (-1,0), 'Helvetica-Bold'),
+        ('ALIGN',      (1,0), (-1,-1), 'CENTER'),
+        ('GRID',       (0,0), (-1,-2), 0.5, colors.grey),
+        ('FONTNAME',   (0,-3), (-1,-1), 'Helvetica-Bold'),
+        ('BACKGROUND', (0,-1), (-1,-1), colors.HexColor('#27ae60')),
+        ('TEXTCOLOR',  (0,-1), (-1,-1), colors.white),
+    ]))
+    elements.append(table)
+    doc.build(elements)
+    return response

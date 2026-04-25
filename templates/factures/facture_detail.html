@@ -7,6 +7,9 @@
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
         <h1>Facture FAC-{{ facture.pk|stringformat:"04d" }}</h1>
         <a href="{% url 'facture_list' %}" class="btn btn-primary">Retour</a>
+        <a href="{% url 'facture_pdf' facture.pk %}" class="btn btn-danger">
+    📄 Télécharger PDF
+</a>
     </div>
     
     <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 2rem;">
