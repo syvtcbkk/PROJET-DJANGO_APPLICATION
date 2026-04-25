@@ -9,6 +9,9 @@
         <a href="{% url 'facture_list' %}" class="btn btn-primary">Retour</a>
         <a href="{% url 'facture_pdf' facture.pk %}" class="btn btn-danger">
     📄 Télécharger PDF
+    <a href="{% url 'facture_email' facture.pk %}" class="btn btn-success">
+    📧 Envoyer par Email
+</a>
 </a>
     </div>
     

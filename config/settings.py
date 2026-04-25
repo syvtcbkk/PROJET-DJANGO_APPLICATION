@@ -137,4 +137,11 @@ MESSAGE_TAGS = {
     messages.WARNING: 'warning',
     messages.ERROR: 'danger',
 }
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+EMAIL_BACKEND   = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST      = 'smtp.gmail.com'
+EMAIL_PORT      = 587
+EMAIL_USE_TLS   = True
+EMAIL_HOST_USER = 'mohamedosseni83@gmail.com'      # ← ton Gmail
+EMAIL_HOST_PASSWORD = 'twlk kbfu uwpf elgv' # ← mot de passe d'application
+DEFAULT_FROM_EMAIL = 'mohamedosseni83@gmail.com'
