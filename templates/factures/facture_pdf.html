@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+
+{% block title %}Facture PDF - {{ facture.pk }}{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h1 style="text-align: center; margin-bottom: 2rem;">FACTURE N° FAC-{{ facture.pk|stringformat:"04d" }}</h1>
+    
+    <div style="display: flex; justify-content: space-between; margin-bottom: 2rem;">
+        <div>
+            <h3>Informations Client</h3>
+            <p><strong>Nom :</strong> {{ facture.client.nom }}</p>
+            <p><strong>Email :</strong> {{ facture.client.email }}</p>
+            {% if facture.client.telephone %}
+            <p><strong>Téléphone :</strong> {{ facture.client.telephone }}</p>
+            {% endif %}
+            {% if facture.client.adresse %}
+            <p><strong>Adresse :</strong> {{ facture.client.adresse }}</p>
+            {% endif %}
+        </div>
+        <div style="text-align: right;">
+            <p><strong>Date :</strong> {{ facture.date|date:"d/m/Y" }}</p>
+            <p><strong>Statut :</strong> 
+                <span class="badge" style="background: 
+                    {% if facture.statut == 'payee' %}#27ae60{% elif facture.statut == 'envoyee' %}#3498db{% elif facture.statut == 'en_attente' %}#f39c12{% else %}#95a5a6{% endif %};
+                    color: white; padding: 0.2rem 0.5rem; border-radius: 4px;">
+                    {{ facture.get_statut_display }}
+                </span>
+            </p>
+        </div>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Désignation</th>
+                <th style="text-align: right;">Quantité</th>
+                <th style="text-align: right;">Prix Unit.</th>
+                <th style="text-align: right;">Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for ligne in facture.lignefacture_set.all %}
+            <tr>
+                <td>{{ ligne.designation }}</td>
+                <td style="text-align: right;">{{ ligne.quantite }}</td>
+                <td style="text-align: right;">{{ ligne.prix_unit|floatformat:0 }} FCA</td>
+                <td style="text-align: right;">{{ ligne.total|floatformat:0 }} FCA</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div style="margin-top: 2rem; text-align: right;">
+        <p><strong>Montant HT :</strong> {{ facture.montant_ht|floatformat:0 }} FCA</p>
+        <p><strong>TVA ({{ facture.taux_tva }}%) :</strong> {{ facture.montant_tva|floatformat:0 }} FCA</p>
+        <p style="font-size: 1.3rem;"><strong>Total TTC :</strong> {{ facture.montant_total|floatformat:0 }} FCA</p>
+    </div>
+
+    <div style="margin-top: 2rem; text-align: center;">
+        <a href="{% url 'facture_pdf' facture.pk %}" class="btn btn-primary">Télécharger PDF</a>
+        <a href="{% url 'facture_email' facture.pk %}" class="btn btn-success">Envoyer par Email</a>
+        <a href="{% url 'facture_list' %}" class="btn btn-warning">Retour à la liste</a>
+    </div>
+</div>
+{% endblock %}

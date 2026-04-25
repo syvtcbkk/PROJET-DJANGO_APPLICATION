@@ -1,37 +1,192 @@
 {% extends 'base.html' %}
 
-{% block content %}
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-4">
-            <div class="card shadow">
-                <div class="card-body p-4">
-                    <h3 class="text-center mb-4">🔐 Connexion</h3>
-                    
-                    {% if messages %}
-                        {% for message in messages %}
-                            <div class="alert alert-{{ message.tags }}">
-                                {{ message }}
-                            </div>
-                        {% endfor %}
-                    {% endif %}
+{% block title %}Connexion - Gestion Facturation{% endblock %}
 
-                    <form method="post">
-                        {% csrf_token %}
-                        <div class="mb-3">
-                            <label class="form-label">Nom d'utilisateur</label>
-                            {{ form.username }}
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Mot de passe</label>
-                            {{ form.password }}
-                        </div>
-                        <button type="submit" class="btn btn-primary w-100">
-                            Se connecter
-                        </button>
-                    </form>
+{% block content %}
+<style>
+    .login-container {
+        min-height: calc(100vh - 200px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .login-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        overflow: hidden;
+        max-width: 420px;
+        width: 100%;
+    }
+    .login-header {
+        background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+        padding: 2rem;
+        text-align: center;
+        color: white;
+    }
+    .login-header h2 {
+        margin: 0;
+        font-size: 1.8rem;
+        font-weight: 600;
+    }
+    .login-header p {
+        margin: 0.5rem 0 0 0;
+        opacity: 0.9;
+        font-size: 0.95rem;
+    }
+    .login-body {
+        padding: 2rem;
+    }
+    .form-label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+        color: #2c3e50;
+        font-size: 0.9rem;
+    }
+    .form-control {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: 2px solid #e9ecef;
+        border-radius: 8px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+    }
+    .form-control:focus {
+        outline: none;
+        border-color: #3498db;
+        box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+    }
+    .btn-login {
+        width: 100%;
+        padding: 0.875rem;
+        background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    .btn-login:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 20px rgba(52, 152, 219, 0.4);
+    }
+    .login-footer {
+        text-align: center;
+        padding: 1rem 2rem 2rem;
+        color: #7f8c8d;
+        font-size: 0.85rem;
+    }
+    .login-footer a {
+        color: #3498db;
+        text-decoration: none;
+        font-weight: 500;
+    }
+    .login-footer a:hover {
+        text-decoration: underline;
+    }
+    .divider {
+        display: flex;
+        align-items: center;
+        margin: 1.5rem 0;
+    }
+    .divider::before, .divider::after {
+        content: '';
+        flex: 1;
+        height: 1px;
+        background: #e9ecef;
+    }
+    .divider span {
+        padding: 0 1rem;
+        color: #95a5a6;
+        font-size: 0.85rem;
+    }
+    .error-message {
+        background: #fee;
+        border: 1px solid #fcc;
+        color: #c00;
+        padding: 0.75rem 1rem;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+        font-size: 0.9rem;
+    }
+</style>
+
+<div class="login-container">
+    <div class="login-card">
+        <div class="login-header">
+            <h2>Connexion</h2>
+            <p>Accédez à votre espace de facturation</p>
+        </div>
+        
+        <div class="login-body">
+            {% if form.errors %}
+                <div class="error-message">
+                    <strong>Erreur :</strong> Nom d'utilisateur ou mot de passe incorrect.
                 </div>
-            </div>
+            {% endif %}
+            
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="error-message" style="{% if message.tags == 'success' %}background: #efe; border-color: #cfc; color: #270;{% endif %}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <form method="post">
+                {% csrf_token %}
+                
+                <div class="form-group">
+                    <label class="form-label" for="id_username">
+                        Nom d'utilisateur
+                    </label>
+                    <input 
+                        type="text" 
+                        name="username" 
+                        id="id_username" 
+                        class="form-control"
+                        placeholder="Entrez votre nom d'utilisateur"
+                        required
+                        autocomplete="username"
+                    >
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="id_password">
+                        Mot de passe
+                    </label>
+                    <input 
+                        type="password" 
+                        name="password" 
+                        id="id_password" 
+                        class="form-control"
+                        placeholder="Entrez votre mot de passe"
+                        required
+                        autocomplete="current-password"
+                    >
+                </div>
+
+                <div class="form-group" style="display: flex; justify-content: space-between; align-items: center;">
+                    <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                        <input type="checkbox" name="remember_me" style="width: auto;">
+                        <span style="font-weight: normal; font-size: 0.9rem; color: #7f8c8d;">Se souvenir de moi</span>
+                    </label>
+                    <a href="#" style="font-size: 0.9rem; color: #3498db; text-decoration: none;">Mot de passe oublié ?</a>
+                </div>
+
+                <button type="submit" class="btn-login">
+                    Se connecter
+                </button>
+                
+                <input type="hidden" name="next" value="{{ next }}">
+            </form>
+        </div>
+        
+        <div class="login-footer">
+            <p>© 2026 Gestion Facturation. Tous droits réservés.</p>
         </div>
     </div>
 </div>
