@@ -140,10 +140,6 @@ def facture_delete(request, pk):
 @login_required
 def facture_pdf(request, pk):
     facture = get_object_or_404(Facture, pk=pk)
-    return render(request, 'factures/facture_pdf.html', {'facture': facture})
-
-def facture_pdf(request, pk):
-    facture = get_object_or_404(Facture, pk=pk)
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = f'filename="facture_{pk}.pdf"'
 
