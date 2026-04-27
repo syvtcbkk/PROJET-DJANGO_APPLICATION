@@ -1,20 +1,106 @@
 {% extends 'base.html' %}
 
-{% block title %}Confirmer la Suppression{% endblock %}
+{% block title %}Attention : Suppression{% endblock %}
 
 {% block content %}
-<div class="card">
-    <h1>Confirmer la Suppression</h1>
-    
-    <div class="alert alert-error">
-        <p>Êtes-vous sûr de vouloir supprimer <strong>{{ object }}</strong> ?</p>
-        <p>Cette action est irréversible.</p>
+<style>
+    .delete-container {
+        max-width: 500px;
+        margin: 4rem auto;
+        text-align: center;
+    }
+
+    .warning-icon {
+        font-size: 4rem;
+        color: #e74c3c;
+        margin-bottom: 1.5rem;
+        animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+        100% { transform: scale(1); }
+    }
+
+    .delete-card {
+        padding: 2.5rem;
+        border-top: 6px solid #e74c3c;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+    }
+
+    .object-name {
+        display: block;
+        background: #fdf2f2;
+        color: #c0392b;
+        padding: 0.75rem;
+        border-radius: 8px;
+        font-family: monospace;
+        font-size: 1.1rem;
+        margin: 1rem 0;
+        border: 1px dashed #e74c3c;
+    }
+
+    .warning-text {
+        color: #7f8c8d;
+        margin-bottom: 2rem;
+    }
+
+    .button-group {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .btn-full {
+        width: 100%;
+        padding: 1rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .cancel-link {
+        color: #95a5a6;
+        text-decoration: none;
+        font-weight: 600;
+        transition: color 0.3s;
+    }
+
+    .cancel-link:hover {
+        color: #2c3e50;
+        text-decoration: underline;
+    }
+</style>
+
+<div class="delete-container">
+    <div class="warning-icon">
+        <i class="fas fa-exclamation-triangle"></i>
     </div>
-    
-    <form method="post">
-        {% csrf_token %}
-        <button type="submit" class="btn btn-danger">Confirmer</button>
-        <a href="{{ cancel_url }}" class="btn btn-primary">Annuler</a>
-    </form>
+
+    <div class="card delete-card">
+        <h1 style="margin-top: 0; color: #2c3e50; font-size: 1.5rem;">Action irréversible</h1>
+        
+        <p class="warning-text">
+            Vous êtes sur le point de supprimer définitivement :
+            <span class="object-name">{{ object }}</span>
+            Toutes les données liées à cet élément seront effacées de la base de données.
+        </p>
+
+        <form method="post">
+            {% csrf_token %}
+            <div class="button-group">
+                <button type="submit" class="btn btn-danger btn-full">
+                    <i class="fas fa-trash-alt"></i> Confirmer la suppression
+                </button>
+                
+                <a href="{{ cancel_url }}" class="cancel-link">
+                    <i class="fas fa-arrow-left"></i> Non, garder cet élément
+                </a>
+            </div>
+        </form>
+    </div>
 </div>
 {% endblock %}

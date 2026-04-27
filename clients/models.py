@@ -19,9 +19,10 @@ class Client(models.Model):
 
 class Profile(models.Model):
     ROLE_CHOICES = [
-        ('comptable',  'Comptable'),
+        ('admin',     'Administrateur'),
+        ('comptable', 'Comptable'),
         ('commercial', 'Commercial'),
-        ('client',     'Client'),
+        ('client',    'Client'),
     ]
     user   = models.OneToOneField(User, on_delete=models.CASCADE)
     role   = models.CharField(max_length=20, choices=ROLE_CHOICES, default='client')

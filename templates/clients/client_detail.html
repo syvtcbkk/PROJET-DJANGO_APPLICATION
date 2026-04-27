@@ -1,69 +1,158 @@
 {% extends 'base.html' %}
 
-{% block title %}Détails du Client{% endblock %}
+{% block title %}Détails du Client{{ client.nom }}{% endblock %}
 
 {% block content %}
-<div class="card">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-        <h1>{{ client.nom }}</h1>
-        <div>
-            <a href="{% url 'client_edit' client.pk %}" class="btn btn-warning">Modifier</a>
-            <a href="{% url 'client_delete' client.pk %}" class="btn btn-danger">Supprimer</a>
-            <a href="{% url 'client_list' %}" class="btn btn-primary">Retour</a>
-        </div>
-    </div>
+<style>
+    .detail-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+    }
+    .detail-header h1 {
+        color: #2c3e50;
+        margin: 0;
+        font-size: 1.8rem;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
     
-    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
-        <div>
-            <p><strong>Email:</strong> {{ client.email }}</p>
-            <p><strong>Téléphone:</strong> {{ client.telephone|default:"-" }}</p>
+    /* Grille d'infos contact */
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+    }
+    .info-group {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+    .info-label {
+        font-size: 0.8rem;
+        color: #7f8c8d;
+        text-transform: uppercase;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+    }
+    .info-value {
+        font-size: 1.05rem;
+        color: #2c3e50;
+        font-weight: 500;
+    }
+
+    /* Status Badges */
+    .status-badge {
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+    .status-payee { background: #d5f4e6; color: #27ae60; }
+    .status-envoyee { background: #d6eaf8; color: #3498db; }
+    .status-brouillon { background: #f4f4f4; color: #7f8c8d; }
+
+    .btn-group {
+        display: flex;
+        gap: 0.5rem;
+    }
+    
+    .card h2 {
+        font-size: 1.3rem;
+        margin-bottom: 1.5rem;
+        color: #34495e;
+        border-bottom: 2px solid #f8f9fa;
+        padding-bottom: 0.5rem;
+    }
+</style>
+
+<div class="detail-header">
+    <h1><i class="fas fa-user-circle"></i> {{ client.nom }}</h1>
+    <div class="btn-group">
+        <a href="{% url 'client_edit' client.pk %}" class="btn btn-warning">
+            <i class="fas fa-edit"></i> Modifier
+        </a>
+        <a href="{% url 'client_delete' client.pk %}" class="btn btn-danger">
+            <i class="fas fa-trash"></i> Supprimer
+        </a>
+        <a href="{% url 'client_list' %}" class="btn btn-primary">
+            <i class="fas fa-arrow-left"></i> Retour
+        </a>
+    </div>
+</div>
+
+<div class="card" style="margin-bottom: 2rem;">
+    <div class="info-grid">
+        <div class="info-group">
+            <span class="info-label">Email</span>
+            <span class="info-value">
+                <a href="mailto:{{ client.email }}" style="color: inherit; text-decoration: none;">
+                    <i class="far fa-envelope"></i> {{ client.email }}
+                </a>
+            </span>
         </div>
-        <div>
-            <p><strong>Adresse:</strong> {{ client.adresse|default:"-" }}</p>
+        <div class="info-group">
+            <span class="info-label">Téléphone</span>
+            <span class="info-value">
+                <i class="fas fa-phone"></i> {{ client.telephone|default:"Non renseigné" }}
+            </span>
+        </div>
+        <div class="info-group">
+            <span class="info-label">Adresse</span>
+            <span class="info-value">
+                <i class="fas fa-map-marker-alt"></i> {{ client.adresse|default:"Non renseignée" }}
+            </span>
         </div>
     </div>
 </div>
 
 <div class="card">
-    <h2>Factures du Client</h2>
-    <table>
-        <thead>
-            <tr>
-                <th>N° Facture</th>
-                <th>Date</th>
-                <th>Montant HT</th>
-                <th>TVA</th>
-                <th>Total</th>
-                <th>Statut</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for facture in factures %}
-            <tr>
-                <td>FAC-{{ facture.pk|stringformat:"04d" }}</td>
-                <td>{{ facture.date }}</td>
-                <td>{{ facture.montant_ht }} FCFA</td>
-                <td>{{ facture.montant_tva }} FCFA</td>
-                <td><strong>{{ facture.montant_total }} FCFA</strong></td>
-                <td>
-                    <span style="padding: 0.25rem 0.5rem; border-radius: 4px; 
-                        {% if facture.statut == 'payee' %}background: #27ae60; color: white;
-                        {% elif facture.statut == 'envoyee' %}background: #3498db; color: white;
-                        {% else %}background: #95a5a6; color: white;{% endif %}">
-                        {{ facture.get_statut_display }}
-                    </span>
-                </td>
-                <td>
-                    <a href="{% url 'facture_detail' facture.pk %}" class="btn btn-primary">Voir</a>
-                </td>
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="7" style="text-align: center;">Aucune facture trouvée.</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <h2><i class="fas fa-history"></i> Historique des Factures</h2>
+    <div style="overflow-x: auto;">
+        <table>
+            <thead>
+                <tr>
+                    <th>N° Facture</th>
+                    <th>Date</th>
+                    <th>Montant HT</th>
+                    <th>TVA</th>
+                    <th>Total (TTC)</th>
+                    <th>Statut</th>
+                    <th style="text-align: right;">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for facture in factures %}
+                <tr>
+                    <td><span style="font-weight: 600; color: #3498db;">FAC-{{ facture.pk|stringformat:"04d" }}</span></td>
+                    <td>{{ facture.date|date:"d/m/Y" }}</td>
+                    <td>{{ facture.montant_ht|floatformat:0 }} F</td>
+                    <td>{{ facture.montant_tva|floatformat:0 }} F</td>
+                    <td><strong style="color: #27ae60;">{{ facture.montant_total|floatformat:0 }} F</strong></td>
+                    <td>
+                        <span class="status-badge status-{{ facture.statut }}">
+                            {{ facture.get_statut_display }}
+                        </span>
+                    </td>
+                    <td style="text-align: right;">
+                        <a href="{% url 'facture_detail' facture.pk %}" class="btn btn-primary" style="padding: 5px 10px; font-size: 0.8rem;">
+                            <i class="fas fa-eye"></i> Voir
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" style="text-align: center; padding: 2rem; color: #95a5a6;">
+                        Aucune facture enregistrée pour ce client.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 </div>
+
 {% endblock %}

@@ -3,74 +3,188 @@
 {% block title %}Liste des Factures{% endblock %}
 
 {% block content %}
-<div class="card">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-        <h1>Liste des Factures</h1>
-        <a href="{% url 'facture_create' %}" class="btn btn-primary">+ Nouvelle Facture</a>
-        <a href="{% url 'export_csv' %}"   class="btn btn-success">Export CSV</a>
-<a href="{% url 'export_excel' %}" class="btn btn-primary">Export Excel</a>
+<style>
+    .header-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+    }
+
+    /* Barre de recherche et filtres */
+    .filter-section {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        margin-bottom: 2rem;
+    }
+
+    .filter-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 1.2rem;
+        align-items: flex-end;
+    }
+
+    .filter-group label {
+        display: block;
+        font-size: 0.8rem;
+        font-weight: 700;
+        color: #7f8c8d;
+        margin-bottom: 0.5rem;
+        text-transform: uppercase;
+    }
+
+    /* Style du tableau */
+    .table-container {
+        background: white;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    th {
+        background: #f8f9fa;
+        color: #2c3e50;
+        font-weight: 600;
+        padding: 1rem;
+        text-align: left;
+        border-bottom: 2px solid #edf2f7;
+    }
+
+    td {
+        padding: 1rem;
+        border-bottom: 1px solid #edf2f7;
+        vertical-align: middle;
+    }
+
+    tr:hover {
+        background-color: #fcfcfc;
+    }
+
+    /* Badges de statut */
+    .badge {
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+    .badge-payee { background: #e6fffa; color: #27ae60; border: 1px solid #b2f5ea; }
+    .badge-envoyee { background: #ebf8ff; color: #3182ce; border: 1px solid #bee3f8; }
+    .badge-brouillon { background: #f7fafc; color: #718096; border: 1px solid #edf2f7; }
+
+    .btn-group {
+        display: flex;
+        gap: 0.5rem;
+    }
+</style>
+
+<div class="header-actions">
+    <div>
+        <h1 style="margin:0;">Gestion des Factures</h1>
+        <p style="color: #7f8c8d; margin: 0;">Consultez et suivez vos transactions</p>
     </div>
-    
-    <form method="get" style="margin-bottom: 1rem; padding: 1rem; background: #f8f9fa; border-radius: 4px;">
-        <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-            <div>
-                <label>Statut:</label>
-                <select name="statut">
-                    <option value="">Tous</option>
-                    <option value="brouillon">Brouillon</option>
-                    <option value="envoyee">Envoyée</option>
-                    <option value="payee">Payée</option>
-                </select>
-            </div>
-            <div>
-                <label>Du:</label>
-                <input type="date" name="date_debut">
-            </div>
-            <div>
-                <label>Au:</label>
-                <input type="date" name="date_fin">
-            </div>
-            <button type="submit" class="btn btn-primary">Filtrer</button>
+    <div class="btn-group">
+        <a href="{% url 'export_csv' %}" class="btn btn-outline" title="Exporter en CSV">
+            <i class="fas fa-file-csv"></i> CSV
+        </a>
+        <a href="{% url 'export_excel' %}" class="btn btn-outline" title="Exporter en Excel">
+            <i class="fas fa-file-excel"></i> Excel
+        </a>
+        <a href="{% url 'facture_create' %}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Nouvelle Facture
+        </a>
+    </div>
+</div>
+
+<!-- Section Filtres -->
+<div class="filter-section">
+    <form method="get" class="filter-grid">
+        <div class="filter-group">
+            <label>État</label>
+            <select name="statut">
+                <option value="">Tous les statuts</option>
+                <option value="brouillon" {% if request.GET.statut == 'brouillon' %}selected{% endif %}>Brouillon</option>
+                <option value="envoyee" {% if request.GET.statut == 'envoyee' %}selected{% endif %}>Envoyée</option>
+                <option value="payee" {% if request.GET.statut == 'payee' %}selected{% endif %}>Payée</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label>Depuis le</label>
+            <input type="date" name="date_debut" value="{{ request.GET.date_debut }}">
+        </div>
+        <div class="filter-group">
+            <label>Jusqu'au</label>
+            <input type="date" name="date_fin" value="{{ request.GET.date_fin }}">
+        </div>
+        <div class="filter-group">
+            <button type="submit" class="btn btn-info" style="width: 100%;">
+                <i class="fas fa-filter"></i> Filtrer
+            </button>
         </div>
     </form>
-    
+</div>
+
+<!-- Liste des factures -->
+<div class="table-container">
     <table>
         <thead>
             <tr>
-                <th>N° Facture</th>
+                <th>Référence</th>
                 <th>Client</th>
                 <th>Date</th>
                 <th>Montant HT</th>
-                <th>TVA</th>
-                <th>Total</th>
+                <th>Total TTC</th>
                 <th>Statut</th>
-                <th>Actions</th>
+                <th style="text-align: right;">Actions</th>
             </tr>
         </thead>
         <tbody>
             {% for facture in factures %}
             <tr>
-                <td>FAC-{{ facture.pk|stringformat:"04d" }}</td>
-                <td>{{ facture.client.nom }}</td>
-                <td>{{ facture.date }}</td>
-                <td>{{ facture.montant_ht }} FCFA</td>
-                <td>{{ facture.montant_tva }} FCFA</td>
-                <td><strong>{{ facture.montant_total }} FCFA</strong></td>
                 <td>
-                    <span style="padding: 0.25rem 0.5rem; border-radius: 4px; 
-                        {% if facture.statut == 'payee' %}background: #27ae60; color: white;
-                        {% elif facture.statut == 'envoyee' %}background: #3498db; color: white;
-                        {% else %}background: #95a5a6; color: white;{% endif %}">
-                        {{ facture.get_statut_display }}
+                    <span style="font-weight: 600; color: #3498db;">
+                        FAC-{{ facture.pk|stringformat:"04d" }}
                     </span>
                 </td>
                 <td>
-                    <a href="{% url 'facture_detail' facture.pk %}" class="btn btn-primary">Voir</a>
+                    <div style="font-weight: 500;">{{ facture.client.nom }}</div>
+                    <small style="color: #a0aec0;">{{ facture.client.email }}</small>
+                </td>
+                <td>{{ facture.date|date:"d/m/Y" }}</td>
+                <td style="color: #718096;">{{ facture.montant_ht }} F</td>
+                <td>
+                    <strong style="color: #2d3748;">{{ facture.montant_total }} F</strong>
+                </td>
+                <td>
+                    <span class="badge badge-{{ facture.statut }}">
+                        <i class="fas fa-circle" style="font-size: 0.5rem; vertical-align: middle; margin-right: 5px;"></i>
+                        {{ facture.get_statut_display }}
+                    </span>
+                </td>
+                <td style="text-align: right;">
+                    <div class="btn-group" style="justify-content: flex-end;">
+                        <a href="{% url 'facture_detail' facture.pk %}" class="btn btn-sm btn-light" title="Voir">
+                            <i class="fas fa-eye"></i>
+                        </a>
+                        <a href="{% url 'facture_edit' facture.pk %}" class="btn btn-sm btn-light" title="Modifier">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                    </div>
                 </td>
             </tr>
             {% empty %}
             <tr>
-                <td colspan="8" style="text-align: center;">Aucune facture trouvée.</td>
+                <td colspan="7" style="text-align: center; padding: 3rem; color: #a0aec0;">
+                    <i class="fas fa-inbox fa-3x" style="display: block; margin-bottom: 1rem;"></i>
+                    Aucune facture ne correspond à vos critères.
+                </td>
             </tr>
             {% endfor %}
         </tbody>

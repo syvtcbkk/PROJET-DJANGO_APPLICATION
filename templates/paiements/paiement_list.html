@@ -1,55 +1,179 @@
 {% extends 'base.html' %}
 
-{% block title %}Liste des Paiements{% endblock %}
+{% block title %}Suivi des Paiements{% endblock %}
 
 {% block content %}
-<div class="stats">
+<style>
+    /* Dashboard Stats */
+    .stats-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .stat-card {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        border-left: 5px solid #3498db;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .stat-card:nth-child(1) { border-left-color: #2ecc71; } /* Total */
+    .stat-card:nth-child(2) { border-left-color: #f1c40f; } /* Mois */
+    .stat-card:nth-child(3) { border-left-color: #9b59b6; } /* Nombre */
+
+    .stat-value {
+        font-size: 1.8rem;
+        font-weight: 800;
+        color: #2c3e50;
+        margin: 0.5rem 0;
+    }
+
+    .stat-label {
+        color: #7f8c8d;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 1px;
+    }
+
+    /* Table Styling */
+    .payment-table-card {
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+    }
+
+    .table-header {
+        padding: 1.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid #f0f2f5;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    th {
+        background: #f8fafc;
+        padding: 1rem;
+        text-align: left;
+        color: #64748b;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+    }
+
+    td {
+        padding: 1.2rem 1rem;
+        border-bottom: 1px solid #f1f5f9;
+        color: #334155;
+    }
+
+    .mode-pill {
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        background: #f1f5f9;
+        color: #475569;
+    }
+
+    .amount-text {
+        color: #10b981;
+        font-weight: 700;
+    }
+
+    .btn-delete-icon {
+        color: #ef4444;
+        padding: 8px;
+        border-radius: 6px;
+        transition: background 0.2s;
+    }
+
+    .btn-delete-icon:hover {
+        background: #fee2e2;
+    }
+</style>
+
+<!-- Section Statistiques -->
+<div class="stats-container">
     <div class="stat-card">
-        <h3>{{ total_paiements }} FCFA</h3>
-        <p>Total des Paiements</p>
+        <span class="stat-label">Recettes Totales</span>
+        <div class="stat-value">{{ total_paiements|default:"0" }} F</div>
     </div>
     <div class="stat-card">
-        <h3>{{ paiements_mois }} FCFA</h3>
-        <p>Paiements ce Mois</p>
+        <span class="stat-label">Ce mois-ci</span>
+        <div class="stat-value">{{ paiements_mois|default:"0" }} F</div>
     </div>
     <div class="stat-card">
-        <h3>{{ paiements|length }}</h3>
-        <p>Nombre de Paiements</p>
+        <span class="stat-label">Transactions</span>
+        <div class="stat-value">{{ paiements|length }}</div>
     </div>
 </div>
 
-<div class="card">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-        <h1>Liste des Paiements</h1>
-        <a href="{% url 'paiement_create' %}" class="btn btn-primary">+ Nouveau Paiement</a>
+<!-- Liste des Transactions -->
+<div class="payment-table-card">
+    <div class="table-header">
+        <h2 style="margin:0; font-size: 1.25rem;">Historique des encaissements</h2>
+        <a href="{% url 'paiement_create' %}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Nouveau Paiement
+        </a>
     </div>
     
     <table>
         <thead>
             <tr>
                 <th>Date</th>
-                <th>Facture</th>
+                <th>Référence Facture</th>
                 <th>Client</th>
-                <th>Montant</th>
                 <th>Mode</th>
-                <th>Actions</th>
+                <th>Montant</th>
+                <th style="text-align: right;">Action</th>
             </tr>
         </thead>
         <tbody>
             {% for paiement in paiements %}
             <tr>
-                <td>{{ paiement.date }}</td>
-                <td>FAC-{{ paiement.facture.pk|stringformat:"04d" }}</td>
-                <td>{{ paiement.facture.client.nom }}</td>
-                <td><strong>{{ paiement.montant }} FCFA</strong></td>
-                <td>{{ paiement.get_mode_display }}</td>
                 <td>
-                    <a href="{% url 'paiement_delete' paiement.pk %}" class="btn btn-danger">Supprimer</a>
+                    <div style="font-weight: 600;">{{ paiement.date|date:"d M Y" }}</div>
+                </td>
+                <td>
+                    <a href="{% url 'facture_detail' paiement.facture.pk %}" style="text-decoration: none; color: #3498db;">
+                        FAC-{{ paiement.facture.pk|stringformat:"04d" }}
+                    </a>
+                </td>
+                <td>{{ paiement.facture.client.nom }}</td>
+                <td>
+                    <span class="mode-pill">
+                        {{ paiement.get_mode_display }}
+                    </span>
+                </td>
+                <td>
+                    <span class="amount-text">+ {{ paiement.montant }} F</span>
+                </td>
+                <td style="text-align: right;">
+                    <a href="{% url 'paiement_delete' paiement.pk %}" 
+                       class="btn-delete-icon" 
+                       onclick="return confirm('Supprimer ce paiement ? cette action est irréversible.')"
+                       title="Supprimer">
+                        <i class="fas fa-trash"></i>
+                    </a>
                 </td>
             </tr>
             {% empty %}
             <tr>
-                <td colspan="6" style="text-align: center;">Aucun paiement trouvé.</td>
+                <td colspan="6" style="text-align: center; padding: 3rem; color: #94a3b8;">
+                    <i class="fas fa-receipt fa-3x" style="display: block; margin-bottom: 1rem; opacity: 0.3;"></i>
+                    Aucun règlement enregistré pour le moment.
+                </td>
             </tr>
             {% endfor %}
         </tbody>

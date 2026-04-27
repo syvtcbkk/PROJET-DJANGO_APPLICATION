@@ -1,16 +1,107 @@
 {% extends 'base.html' %}
 
-{% block title %}Modifier Facture{% endblock %}
+{% block title %}Modifier Facture FAC-{{ facture.pk|stringformat:"04d" }}{% endblock %}
 
 {% block content %}
+<style>
+    .form-header {
+        margin-bottom: 2rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    /* Style des groupes de champs */
+    .invoice-info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+        background: #f8f9fa;
+        padding: 1.5rem;
+        border-radius: 8px;
+        margin-bottom: 2rem;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+        color: #34495e;
+        font-size: 0.9rem;
+    }
+
+    select, input {
+        width: 100%;
+        padding: 0.7rem;
+        border: 2px solid #ecf0f1;
+        border-radius: 6px;
+        font-size: 0.95rem;
+        transition: border-color 0.3s;
+    }
+
+    select:focus, input:focus {
+        outline: none;
+        border-color: #3498db;
+    }
+
+    /* Section Lignes */
+    .lignes-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid #eee;
+    }
+
+    .ligne-row {
+        background: white;
+        padding: 10px;
+        border-radius: 8px;
+        border: 1px solid #eee;
+        transition: all 0.2s;
+    }
+
+    .ligne-row:hover {
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+
+    .btn-remove {
+        background: #ff7675;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: 0.2s;
+    }
+
+    .btn-remove:hover {
+        background: #d63031;
+    }
+
+    .form-actions {
+        margin-top: 3rem;
+        padding-top: 1.5rem;
+        border-top: 2px solid #eee;
+        display: flex;
+        gap: 1rem;
+    }
+</style>
+
+<div class="form-header">
+    <a href="{% url 'facture_detail' facture.pk %}" style="text-decoration: none; color: #7f8c8d;">
+        <i class="fas fa-arrow-left"></i>
+    </a>
+    <h1>Modifier la Facture <span style="color: #3498db;">FAC-{{ facture.pk|stringformat:"04d" }}</span></h1>
+</div>
+
 <div class="card">
-    <h1>Modifier Facture FAC-{{ facture.pk|stringformat:"04d" }}</h1>
-    
-    <form method="post">
+    <form method="post" id="facture-form">
         {% csrf_token %}
-        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
+        
+        <div class="invoice-info-grid">
             <div class="form-group">
-                <label for="client_id">Client *</label>
+                <label for="client_id"><i class="fas fa-user"></i> Client *</label>
                 <select id="client_id" name="client_id" required>
                     {% for client in clients %}
                     <option value="{{ client.pk }}" {% if client.pk == facture.client_id %}selected{% endif %}>
@@ -21,12 +112,12 @@
             </div>
             
             <div class="form-group">
-                <label for="date">Date *</label>
-                <input type="date" id="date" name="date" value="{{ facture.date }}" required>
+                <label for="date"><i class="fas fa-calendar-alt"></i> Date d'émission *</label>
+                <input type="date" id="date" name="date" value="{{ facture.date|date:'Y-m-d' }}" required>
             </div>
             
             <div class="form-group">
-                <label for="statut">Statut *</label>
+                <label for="statut"><i class="fas fa-info-circle"></i> État du paiement *</label>
                 <select id="statut" name="statut" required>
                     <option value="brouillon" {% if facture.statut == 'brouillon' %}selected{% endif %}>Brouillon</option>
                     <option value="envoyee" {% if facture.statut == 'envoyee' %}selected{% endif %}>Envoyée</option>
@@ -35,33 +126,38 @@
             </div>
             
             <div class="form-group">
-                <label for="taux_tva">Taux TVA (%)</label>
+                <label for="taux_tva"><i class="fas fa-percentage"></i> Taux TVA</label>
                 <input type="number" id="taux_tva" name="taux_tva" value="{{ facture.taux_tva }}" step="0.01">
             </div>
         </div>
         
-        <h2>Lignes de Facture</h2>
+        <div class="lignes-header">
+            <h2 style="margin:0; font-size: 1.2rem;"><i class="fas fa-list"></i> Articles & Services</h2>
+            <button type="button" class="btn btn-primary btn-sm" onclick="addLigne()">
+                <i class="fas fa-plus"></i> Ajouter
+            </button>
+        </div>
+
         <div id="lignes-container">
             {% for ligne in lignes %}
-            <div class="ligne-row" style="display: grid; grid-template-columns: 2fr 1fr 1fr 0.5fr; gap: 0.5rem; margin-bottom: 0.5rem;">
+            <div class="ligne-row" style="display: grid; grid-template-columns: 2fr 1fr 1fr 45px; gap: 0.8rem; margin-bottom: 0.8rem; align-items: center;">
                 <input type="text" name="designation[]" value="{{ ligne.designation }}" placeholder="Désignation" required>
-                <input type="number" name="quantite[]" value="{{ ligne.quantite }}" placeholder="Quantité" step="0.01" required>
-                <input type="number" name="prix_unit[]" value="{{ ligne.prix_unit }}" placeholder="Prix Unitaire" step="0.01" required>
-                <button type="button" class="btn btn-danger" onclick="this.parentElement.remove()">×</button>
+                <input type="number" name="quantite[]" value="{{ ligne.quantite }}" placeholder="Qté" step="0.01" required>
+                <input type="number" name="prix_unit[]" value="{{ ligne.prix_unit }}" placeholder="Prix Unit." step="0.01" required>
+                <button type="button" class="btn-remove" onclick="this.parentElement.remove()" style="height: 38px;">
+                    <i class="fas fa-times"></i>
+                </button>
             </div>
             {% endfor %}
-            <div class="ligne-row" style="display: grid; grid-template-columns: 2fr 1fr 1fr 0.5fr; gap: 0.5rem; margin-bottom: 0.5rem;">
-                <input type="text" name="designation[]" placeholder="Désignation" required>
-                <input type="number" name="quantite[]" placeholder="Quantité" step="0.01" required>
-                <input type="number" name="prix_unit[]" placeholder="Prix Unitaire" step="0.01" required>
-                <button type="button" class="btn btn-danger" onclick="this.parentElement.remove()">×</button>
-            </div>
         </div>
-        <button type="button" class="btn btn-primary" onclick="addLigne()">+ Ajouter une ligne</button>
-        
-        <div style="margin-top: 2rem;">
-            <button type="submit" class="btn btn-success">Enregistrer</button>
-            <a href="{% url 'facture_detail' facture.pk %}" class="btn btn-danger">Annuler</a>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-success">
+                <i class="fas fa-save"></i> Enregistrer les modifications
+            </button>
+            <a href="{% url 'facture_detail' facture.pk %}" class="btn btn-danger">
+                Annuler
+            </a>
         </div>
     </form>
 </div>
@@ -71,14 +167,19 @@ function addLigne() {
     const container = document.getElementById('lignes-container');
     const div = document.createElement('div');
     div.className = 'ligne-row';
-    div.style = 'display: grid; grid-template-columns: 2fr 1fr 1fr 0.5fr; gap: 0.5rem; margin-bottom: 0.5rem;';
+    div.style = 'display: grid; grid-template-columns: 2fr 1fr 1fr 45px; gap: 0.8rem; margin-bottom: 0.8rem; align-items: center;';
     div.innerHTML = `
         <input type="text" name="designation[]" placeholder="Désignation" required>
-        <input type="number" name="quantite[]" placeholder="Quantité" step="0.01" required>
-        <input type="number" name="prix_unit[]" placeholder="Prix Unitaire" step="0.01" required>
-        <button type="button" class="btn btn-danger" onclick="this.parentElement.remove()">×</button>
+        <input type="number" name="quantite[]" placeholder="Qté" step="0.01" required>
+        <input type="number" name="prix_unit[]" placeholder="Prix Unit." step="0.01" required>
+        <button type="button" class="btn-remove" onclick="this.parentElement.remove()" style="height: 38px;">
+            <i class="fas fa-times"></i>
+        </button>
     `;
     container.appendChild(div);
+    
+    // Auto-focus sur la nouvelle désignation
+    div.querySelector('input[name="designation[]"]').focus();
 }
 </script>
 {% endblock %}

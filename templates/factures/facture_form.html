@@ -1,75 +1,232 @@
 {% extends 'base.html' %}
 
-{% block title %}{% if form %}Modifier{% else %}Nouvelle{% endif %} Facture{% endblock %}
+{% block title %}{% if form.instance.pk %}Modifier{% else %}Nouvelle{% endif %} Facture{% endblock %}
 
 {% block content %}
+<style>
+    .form-header {
+        margin-bottom: 2rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    /* Panneau d'informations principales */
+    .invoice-main-card {
+        background: #f8f9fa;
+        padding: 1.5rem;
+        border-radius: 12px;
+        border: 1px solid #e9ecef;
+        margin-bottom: 2rem;
+    }
+
+    .invoice-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+        color: #34495e;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    select, input {
+        width: 100%;
+        padding: 0.75rem;
+        border: 2px solid #ecf0f1;
+        border-radius: 8px;
+        font-size: 1rem;
+        transition: all 0.3s;
+    }
+
+    select:focus, input:focus {
+        outline: none;
+        border-color: #3498db;
+        box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+    }
+
+    /* Section des articles */
+    .items-section {
+        margin-top: 2rem;
+    }
+
+    .items-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid #3498db;
+    }
+
+    .ligne-row {
+        background: white;
+        padding: 1rem;
+        border-radius: 10px;
+        border: 1px solid #eee;
+        margin-bottom: 0.75rem;
+        display: grid;
+        grid-template-columns: 3fr 1fr 1fr 45px;
+        gap: 1rem;
+        align-items: center;
+        animation: slideIn 0.3s ease-out;
+    }
+
+    @keyframes slideIn {
+        from { opacity: 0; transform: translateX(-10px); }
+        to { opacity: 1; transform: translateX(0); }
+    }
+
+    .btn-remove {
+        background: #ff7675;
+        color: white;
+        border: none;
+        width: 35px;
+        height: 35px;
+        border-radius: 8px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: 0.2s;
+    }
+
+    .btn-remove:hover {
+        background: #d63031;
+        transform: scale(1.05);
+    }
+
+    .form-actions {
+        margin-top: 3rem;
+        padding-top: 2rem;
+        border-top: 1px solid #eee;
+        display: flex;
+        gap: 1rem;
+    }
+
+    @media (max-width: 768px) {
+        .ligne-row {
+            grid-template-columns: 1fr;
+            gap: 0.5rem;
+        }
+        .btn-remove { width: 100%; }
+    }
+</style>
+
+<div class="form-header">
+    <a href="{% url 'facture_list' %}" style="text-decoration: none; color: #7f8c8d;">
+        <i class="fas fa-arrow-left"></i>
+    </a>
+    <h1>
+        {% if form.instance.pk %}
+            <i class="fas fa-edit" style="color: #f1c40f;"></i> Modifier Facture
+        {% else %}
+            <i class="fas fa-plus-circle" style="color: #2ecc71;"></i> Nouvelle Facture
+        {% endif %}
+    </h1>
+</div>
+
 <div class="card">
-    <h1>{% if form %}Modifier{% else %}Nouvelle{% endif %} Facture</h1>
-    
-    <form method="post">
+    <form method="post" id="facture-form">
         {% csrf_token %}
-        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
-            <div class="form-group">
-                <label for="client_id">Client *</label>
-                <select id="client_id" name="client_id" required>
-                    <option value="">Sélectionner un client</option>
-                    {% for client in clients %}
-                    <option value="{{ client.pk }}">{{ client.nom }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            
-            <div class="form-group">
-                <label for="date">Date *</label>
-                <input type="date" id="date" name="date" value="{{ today }}" required>
-            </div>
-            
-            <div class="form-group">
-                <label for="statut">Statut *</label>
-                <select id="statut" name="statut" required>
-                    <option value="brouillon">Brouillon</option>
-                    <option value="envoyee">Envoyée</option>
-                    <option value="payee">Payée</option>
-                </select>
-            </div>
-            
-            <div class="form-group">
-                <label for="taux_tva">Taux TVA (%)</label>
-                <input type="number" id="taux_tva" name="taux_tva" value="18" step="0.01">
+        
+        <div class="invoice-main-card">
+            <div class="invoice-grid">
+                <div class="form-group">
+                    <label for="client_id">Client destinataire *</label>
+                    <select id="client_id" name="client_id" required>
+                        <option value="">-- Sélectionner un client --</option>
+                        {% for client in clients %}
+                        <option value="{{ client.pk }}" {% if client.pk == form.client.value|add:"0" %}selected{% endif %}>
+                            {{ client.nom }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="date">Date de facturation *</label>
+                    <input type="date" id="date" name="date" value="{{ today|date:'Y-m-d' }}" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="statut">Statut initial *</label>
+                    <select id="statut" name="statut" required>
+                        <option value="brouillon">Brouillon</option>
+                        <option value="envoyee">Envoyée</option>
+                        <option value="payee">Payée</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="taux_tva">TVA (%)</label>
+                    <input type="number" id="taux_tva" name="taux_tva" value="18" step="0.01">
+                </div>
             </div>
         </div>
         
-        <h2>Lignes de Facture</h2>
-        <div id="lignes-container">
-            <div class="ligne-row" style="display: grid; grid-template-columns: 2fr 1fr 1fr 0.5fr; gap: 0.5rem; margin-bottom: 0.5rem;">
-                <input type="text" name="designation[]" placeholder="Désignation" required>
-                <input type="number" name="quantite[]" placeholder="Quantité" step="0.01" required>
-                <input type="number" name="prix_unit[]" placeholder="Prix Unitaire" step="0.01" required>
-                <button type="button" class="btn btn-danger" onclick="this.parentElement.remove()">×</button>
+        <div class="items-section">
+            <div class="items-header">
+                <h2 style="margin: 0; font-size: 1.2rem; color: #2c3e50;">Détails des prestations</h2>
+                <button type="button" class="btn btn-primary btn-sm" onclick="addLigne()">
+                    <i class="fas fa-plus"></i> Ajouter une ligne
+                </button>
+            </div>
+
+            <div id="lignes-container">
+                <!-- Première ligne par défaut -->
+                <div class="ligne-row">
+                    <input type="text" name="designation[]" placeholder="Désignation du produit ou service" required>
+                    <input type="number" name="quantite[]" placeholder="Qté" step="0.01" min="0" required>
+                    <input type="number" name="prix_unit[]" placeholder="Prix Unit. (FCFA)" step="0.01" min="0" required>
+                    <button type="button" class="btn-remove" onclick="removeLigne(this)">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                </div>
             </div>
         </div>
-        <button type="button" class="btn btn-primary" onclick="addLigne()">+ Ajouter une ligne</button>
         
-        <div style="margin-top: 2rem;">
-            <button type="submit" class="btn btn-success">Enregistrer</button>
-            <a href="{% url 'facture_list' %}" class="btn btn-danger">Annuler</a>
+        <div class="form-actions">
+            <button type="submit" class="btn btn-success">
+                <i class="fas fa-save"></i> Enregistrer la facture
+            </button>
+            <a href="{% url 'facture_list' %}" class="btn btn-danger">
+                Annuler
+            </a>
         </div>
     </form>
 </div>
 
 <script>
-function addLigne() {
-    const container = document.getElementById('lignes-container');
-    const div = document.createElement('div');
-    div.className = 'ligne-row';
-    div.style = 'display: grid; grid-template-columns: 2fr 1fr 1fr 0.5fr; gap: 0.5rem; margin-bottom: 0.5rem;';
-    div.innerHTML = `
-        <input type="text" name="designation[]" placeholder="Désignation" required>
-        <input type="number" name="quantite[]" placeholder="Quantité" step="0.01" required>
-        <input type="number" name="prix_unit[]" placeholder="Prix Unitaire" step="0.01" required>
-        <button type="button" class="btn btn-danger" onclick="this.parentElement.remove()">×</button>
-    `;
-    container.appendChild(div);
-}
+    function addLigne() {
+        const container = document.getElementById('lignes-container');
+        const div = document.createElement('div');
+        div.className = 'ligne-row';
+        div.innerHTML = `
+            <input type="text" name="designation[]" placeholder="Désignation du produit ou service" required>
+            <input type="number" name="quantite[]" placeholder="Qté" step="0.01" min="0" required>
+            <input type="number" name="prix_unit[]" placeholder="Prix Unit. (FCFA)" step="0.01" min="0" required>
+            <button type="button" class="btn-remove" onclick="removeLigne(this)">
+                <i class="fas fa-trash-alt"></i>
+            </button>
+        `;
+        container.appendChild(div);
+        div.querySelector('input').focus();
+    }
+
+    function removeLigne(btn) {
+        const rows = document.querySelectorAll('.ligne-row');
+        if (rows.length > 1) {
+            btn.parentElement.remove();
+        } else {
+            alert("Une facture doit comporter au moins une ligne.");
+        }
+    }
 </script>
 {% endblock %}

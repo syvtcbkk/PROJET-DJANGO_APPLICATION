@@ -1,117 +1,202 @@
 {% extends 'base.html' %}
 
-{% block title %}Détails de la Facture{% endblock %}
+{% block title %}Détails Facture FAC-{{ facture.pk|stringformat:"04d" }}{% endblock %}
 
 {% block content %}
-<div class="card">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-        <h1>Facture FAC-{{ facture.pk|stringformat:"04d" }}</h1>
-        <div style="display: flex; gap: 0.5rem;">
-            <a href="{% url 'facture_list' %}" class="btn btn-primary">Retour</a>
-            <button onclick="window.print()" class="btn btn-info">
-                Imprimer
-            </button>
-            <a href="{% url 'facture_pdf' facture.pk %}" class="btn btn-danger">
-                PDF
-            </a>
-            <a href="{% url 'facture_email' facture.pk %}" class="btn btn-success">
-                Email
-            </a>
-        </div>
-    </div>
+<style>
+    /* En-tête d'action */
+    .action-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+    }
     
-    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 2rem;">
-        <div>
-            <h3>Informations Client</h3>
-            <p><strong>Nom:</strong> {{ facture.client.nom }}</p>
-            <p><strong>Email:</strong> {{ facture.client.email }}</p>
-            <p><strong>Téléphone:</strong> {{ facture.client.telephone|default:"-" }}</p>
-        </div>
-        <div>
-            <h3>Informations Facture</h3>
-            <p><strong>Date:</strong> {{ facture.date }}</p>
-            <p><strong>Statut:</strong> 
-                <span style="padding: 0.25rem 0.5rem; border-radius: 4px; 
-                    {% if facture.statut == 'payee' %}background: #27ae60; color: white;
-                    {% elif facture.statut == 'envoyee' %}background: #3498db; color: white;
-                    {% else %}background: #95a5a6; color: white;{% endif %}">
-                    {{ facture.get_statut_display }}
-                </span>
-            </p>
-        </div>
+    /* Style de la Facture */
+    .invoice-container {
+        background: white;
+        padding: 40px;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+    }
+
+    .invoice-header {
+        display: flex;
+        justify-content: space-between;
+        border-bottom: 2px solid #f8f9fa;
+        padding-bottom: 20px;
+        margin-bottom: 30px;
+    }
+
+    .status-badge {
+        padding: 6px 15px;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+    }
+    .status-payee { background: #d5f4e6; color: #27ae60; }
+    .status-envoyee { background: #d6eaf8; color: #3498db; }
+    .status-brouillon { background: #f4f4f4; color: #7f8c8d; }
+
+    /* Résumé financier stylisé */
+    .summary-box {
+        margin-left: auto;
+        width: 300px;
+        margin-top: 20px;
+    }
+    .summary-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 10px 0;
+        border-bottom: 1px solid #f1f1f1;
+    }
+    .total-row {
+        border-bottom: none;
+        color: #2c3e50;
+        font-size: 1.2rem;
+        padding-top: 15px;
+    }
+
+    /* Section Paiements */
+    .payment-section {
+        margin-top: 40px;
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 8px;
+    }
+
+    /* Masquer les boutons à l'impression */
+    @media print {
+        .action-bar, .nav-sidebar, .btn {
+            display: none !important;
+        }
+        .invoice-container {
+            box-shadow: none;
+            padding: 0;
+        }
+        body { background: white; }
+    }
+</style>
+
+<div class="action-bar">
+    <h1 style="margin:0;"><i class="fas fa-file-invoice"></i> Détails Facture</h1>
+    <div style="display: flex; gap: 10px;">
+        <a href="{% url 'facture_list' %}" class="btn btn-primary">
+            <i class="fas fa-arrow-left"></i> Retour
+        </a>
+        <button onclick="window.print()" class="btn btn-info">
+            <i class="fas fa-print"></i> Imprimer
+        </button>
+        <a href="{% url 'facture_pdf' facture.pk %}" class="btn btn-danger">
+            <i class="fas fa-file-pdf"></i> PDF
+        </a>
+        <a href="{% url 'facture_email' facture.pk %}" class="btn btn-success">
+            <i class="fas fa-paper-plane"></i> Envoyer par Email
+        </a>
     </div>
 </div>
 
-<div class="card">
-    <h2>Détail des Lignes</h2>
-    <table>
+<div class="invoice-container">
+    <!-- En-tête Document -->
+    <div class="invoice-header">
+        <div>
+            <h2 style="color: #3498db; margin: 0;">FAC-{{ facture.pk|stringformat:"04d" }}</h2>
+            <p style="color: #7f8c8d; margin-top: 5px;">Date d'émission: <strong>{{ facture.date|date:"d/m/Y" }}</strong></p>
+        </div>
+        <div style="text-align: right;">
+            <span class="status-badge status-{{ facture.statut }}">
+                {{ facture.get_statut_display }}
+            </span>
+        </div>
+    </div>
+
+    <!-- Grille Info Client/Vendeur -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 50px; margin-bottom: 40px;">
+        <div>
+            <h4 style="text-transform: uppercase; color: #bdc3c7; font-size: 0.8rem; margin-bottom: 10px;">Facturé à</h4>
+            <h3 style="margin: 0;">{{ facture.client.nom }}</h3>
+            <p style="margin: 5px 0; color: #576574;">
+                <i class="far fa-envelope"></i> {{ facture.client.email }}<br>
+                <i class="fas fa-phone-alt"></i> {{ facture.client.telephone|default:"-" }}<br>
+                <i class="fas fa-map-marker-alt"></i> {{ facture.client.adresse|default:"-" }}
+            </p>
+        </div>
+        <div style="text-align: right;">
+            <h4 style="text-transform: uppercase; color: #bdc3c7; font-size: 0.8rem; margin-bottom: 10px;">Émetteur</h4>
+            <h3 style="margin: 0;">Ma Société SARL</h3>
+            <p style="margin: 5px 0; color: #576574;">
+                Libreville, Gabon<br>
+                Contact: +241 00 00 00 00
+            </p>
+        </div>
+    </div>
+
+    <!-- Tableau des articles -->
+    <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px;">
         <thead>
-            <tr>
-                <th>Désignation</th>
-                <th>Quantité</th>
-                <th>Prix Unitaire</th>
-                <th>Total</th>
+            <tr style="background: #2c3e50; color: white;">
+                <th style="padding: 12px; text-align: left; border-radius: 4px 0 0 4px;">Désignation</th>
+                <th style="padding: 12px; text-align: center;">Qté</th>
+                <th style="padding: 12px; text-align: right;">Prix Unitaire</th>
+                <th style="padding: 12px; text-align: right; border-radius: 0 4px 4px 0;">Total</th>
             </tr>
         </thead>
         <tbody>
             {% for ligne in facture.lignefacture_set.all %}
-            <tr>
-                <td>{{ ligne.designation }}</td>
-                <td>{{ ligne.quantite }}</td>
-                <td>{{ ligne.prix_unit }} FCFA</td>
-                <td><strong>{{ ligne.total }} FCFA</strong></td>
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="4" style="text-align: center;">Aucune ligne de facture.</td>
+            <tr style="border-bottom: 1px solid #eee;">
+                <td style="padding: 15px 12px;">{{ ligne.designation }}</td>
+                <td style="padding: 15px 12px; text-align: center;">{{ ligne.quantite }}</td>
+                <td style="padding: 15px 12px; text-align: right;">{{ ligne.prix_unit }} F</td>
+                <td style="padding: 15px 12px; text-align: right;"><strong>{{ ligne.total }} F</strong></td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
-</div>
 
-<div class="card">
-    <h2>Résumé Financier</h2>
-    <table>
-        <tr>
-            <td>Montant HT</td>
-            <td style="text-align: right;"><strong>{{ facture.montant_ht }} FCFA</strong></td>
-        </tr>
-        <tr>
-            <td>TVA ({{ facture.taux_tva }}%)</td>
-            <td style="text-align: right;">{{ facture.montant_tva }} FCFA</td>
-        </tr>
-        <tr>
-            <td><strong>Total TTC</strong></td>
-            <td style="text-align: right;"><strong>{{ facture.montant_total }} FCFA</strong></td>
-        </tr>
-    </table>
-</div>
+    <!-- Résumé Financier -->
+    <div class="summary-box">
+        <div class="summary-row">
+            <span>Montant HT</span>
+            <span>{{ facture.montant_ht }} FCFA</span>
+        </div>
+        <div class="summary-row">
+            <span>TVA ({{ facture.taux_tva }}%)</span>
+            <span>{{ facture.montant_tva }} FCFA</span>
+        </div>
+        <div class="summary-row total-row">
+            <strong>TOTAL TTC</strong>
+            <strong style="color: #27ae60;">{{ facture.montant_total }} FCFA</strong>
+        </div>
+    </div>
 
-<div class="card">
-    <h2>Paiements</h2>
-    <table>
-        <thead>
-            <tr>
-                <th>Date</th>
-                <th>Montant</th>
-                <th>Mode</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for paiement in facture.paiement_set.all %}
-            <tr>
-                <td>{{ paiement.date }}</td>
-                <td>{{ paiement.montant }} FCFA</td>
-                <td>{{ paiement.get_mode_display }}</td>
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="3" style="text-align: center;">Aucun paiement enregistré.</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    <p style="margin-top: 1rem;"><strong>Solde Restant:</strong> {{ facture.solde_restant }} FCFA</p>
+    <!-- Historique des paiements -->
+    <div class="payment-section">
+        <h4 style="margin-top: 0; color: #2c3e50;"><i class="fas fa-credit-card"></i> Historique des Paiements</h4>
+        <table style="width: 100%; font-size: 0.9rem;">
+            <thead>
+                <tr style="color: #7f8c8d; text-align: left;">
+                    <th>Date</th>
+                    <th>Mode</th>
+                    <th style="text-align: right;">Montant</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for paiement in facture.paiement_set.all %}
+                <tr>
+                    <td style="padding: 8px 0;">{{ paiement.date|date:"d/m/Y" }}</td>
+                    <td>{{ paiement.get_mode_display }}</td>
+                    <td style="text-align: right;">{{ paiement.montant }} F</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="3" style="color: #bdc3c7; padding-top: 10px;">Aucun paiement.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <div style="margin-top: 15px; padding-top: 10px; border-top: 1px dashed #ddd; display: flex; justify-content: space-between;">
+            <strong>Reste à payer :</strong>
+            <strong style="color: #e74c3c;">{{ facture.solde_restant }} FCFA</strong>
+        </div>
+    </div>
 </div>
 {% endblock %}

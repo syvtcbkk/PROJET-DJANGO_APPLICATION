@@ -1,66 +1,202 @@
 {% extends 'base.html' %}
 
-{% block title %}Facture PDF - {{ facture.pk }}{% endblock %}
+{% block title %}Facture PDF - FAC-{{ facture.pk|stringformat:"04d" }}{% endblock %}
 
 {% block content %}
-<div class="card">
-    <h1 style="text-align: center; margin-bottom: 2rem;">FACTURE N° FAC-{{ facture.pk|stringformat:"04d" }}</h1>
+<style>
+    .preview-container {
+        max-width: 900px;
+        margin: 0 auto;
+    }
     
-    <div style="display: flex; justify-content: space-between; margin-bottom: 2rem;">
-        <div>
-            <h3>Informations Client</h3>
-            <p><strong>Nom :</strong> {{ facture.client.nom }}</p>
-            <p><strong>Email :</strong> {{ facture.client.email }}</p>
-            {% if facture.client.telephone %}
-            <p><strong>Téléphone :</strong> {{ facture.client.telephone }}</p>
-            {% endif %}
-            {% if facture.client.adresse %}
-            <p><strong>Adresse :</strong> {{ facture.client.adresse }}</p>
-            {% endif %}
+    .invoice-box {
+        background: white;
+        padding: 50px;
+        border-radius: 8px;
+        box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        color: #2d3436;
+        line-height: 1.6;
+    }
+
+    .invoice-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        border-bottom: 2px solid #eee;
+        padding-bottom: 30px;
+        margin-bottom: 30px;
+    }
+
+    .company-logo {
+        color: #3498db;
+        font-size: 2rem;
+        font-weight: 800;
+        text-transform: uppercase;
+    }
+
+    .invoice-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #2d3436;
+        text-align: right;
+    }
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 40px;
+        margin-bottom: 40px;
+    }
+
+    .info-label {
+        color: #b2bec3;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 1px;
+        margin-bottom: 5px;
+    }
+
+    /* Table styles */
+    .invoice-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 30px;
+    }
+    .invoice-table th {
+        background: #f8f9fa;
+        padding: 12px;
+        text-align: left;
+        font-size: 0.9rem;
+        border-bottom: 2px solid #eee;
+    }
+    .invoice-table td {
+        padding: 15px 12px;
+        border-bottom: 1px solid #eee;
+    }
+
+    .totals-area {
+        display: flex;
+        justify-content: flex-end;
+    }
+    .totals-table {
+        width: 300px;
+    }
+    .totals-table tr td {
+        padding: 8px 0;
+    }
+    .grand-total {
+        font-size: 1.4rem;
+        color: #27ae60;
+        font-weight: 800;
+        border-top: 2px solid #eee;
+        margin-top: 10px;
+        padding-top: 10px;
+    }
+
+    .action-footer {
+        margin-top: 30px;
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+    }
+
+    /* Print specific adjustments */
+    @media print {
+        .action-footer, .nav-sidebar { display: none !important; }
+        .invoice-box { box-shadow: none; padding: 0; }
+        body { background: white; }
+    }
+</style>
+
+<div class="preview-container">
+    <div class="invoice-box">
+        <!-- Header -->
+        <div class="invoice-header">
+            <div class="company-logo">MA SOCIÉTÉ</div>
+            <div class="invoice-title">
+                FACTURE<br>
+                <small style="color:#7f8c8d; font-size: 1rem;">N° FAC-{{ facture.pk|stringformat:"04d" }}</small>
+            </div>
         </div>
-        <div style="text-align: right;">
-            <p><strong>Date :</strong> {{ facture.date|date:"d/m/Y" }}</p>
-            <p><strong>Statut :</strong> 
-                <span class="badge" style="background: 
-                    {% if facture.statut == 'payee' %}#27ae60{% elif facture.statut == 'envoyee' %}#3498db{% elif facture.statut == 'en_attente' %}#f39c12{% else %}#95a5a6{% endif %};
-                    color: white; padding: 0.2rem 0.5rem; border-radius: 4px;">
-                    {{ facture.get_statut_display }}
+
+        <!-- Info Grid -->
+        <div class="info-grid">
+            <div>
+                <div class="info-label">Émis pour :</div>
+                <h3 style="margin:0;">{{ facture.client.nom }}</h3>
+                <p style="margin:5px 0; color:#636e72;">
+                    {{ facture.client.email }}<br>
+                    {% if facture.client.telephone %}{{ facture.client.telephone }}<br>{% endif %}
+                    {% if facture.client.adresse %}{{ facture.client.adresse }}{% endif %}
+                </p>
+            </div>
+            <div style="text-align: right;">
+                <div class="info-label">Date d'émission :</div>
+                <div style="font-weight: 700;">{{ facture.date|date:"d F Y" }}</div>
+                
+                <div class="info-label" style="margin-top: 20px;">Statut :</div>
+                <span style="display:inline-block; padding: 4px 12px; border-radius: 50px; font-size: 0.8rem; font-weight: 700; background: {% if facture.statut == 'payee' %}#dff9fb; color:#27ae60;{% else %}#f5f6fa; color:#7f8c8d;{% endif %}">
+                    {{ facture.get_statut_display|upper }}
                 </span>
-            </p>
+            </div>
+        </div>
+
+        <!-- Table -->
+        <table class="invoice-table">
+            <thead>
+                <tr>
+                    <th>DÉSIGNATION</th>
+                    <th style="text-align: center;">QTÉ</th>
+                    <th style="text-align: right;">PRIX UNIT.</th>
+                    <th style="text-align: right;">TOTAL</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ligne in facture.lignefacture_set.all %}
+                <tr>
+                    <td>{{ ligne.designation }}</td>
+                    <td style="text-align: center;">{{ ligne.quantite }}</td>
+                    <td style="text-align: right;">{{ ligne.prix_unit|floatformat:0 }} F</td>
+                    <td style="text-align: right; font-weight: 600;">{{ ligne.total|floatformat:0 }} F</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <!-- Totals -->
+        <div class="totals-area">
+            <table class="totals-table">
+                <tr>
+                    <td>Montant HT :</td>
+                    <td style="text-align: right;">{{ facture.montant_ht|floatformat:0 }} F</td>
+                </tr>
+                <tr>
+                    <td>TVA ({{ facture.taux_tva }}%) :</td>
+                    <td style="text-align: right;">{{ facture.montant_tva|floatformat:0 }} F</td>
+                </tr>
+                <tr class="grand-total">
+                    <td>TOTAL TTC :</td>
+                    <td style="text-align: right;">{{ facture.montant_total|floatformat:0 }} FCFA</td>
+                </tr>
+            </table>
         </div>
     </div>
 
-    <table>
-        <thead>
-            <tr>
-                <th>Désignation</th>
-                <th style="text-align: right;">Quantité</th>
-                <th style="text-align: right;">Prix Unit.</th>
-                <th style="text-align: right;">Total</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for ligne in facture.lignefacture_set.all %}
-            <tr>
-                <td>{{ ligne.designation }}</td>
-                <td style="text-align: right;">{{ ligne.quantite }}</td>
-                <td style="text-align: right;">{{ ligne.prix_unit|floatformat:0 }} FCA</td>
-                <td style="text-align: right;">{{ ligne.total|floatformat:0 }} FCA</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-
-    <div style="margin-top: 2rem; text-align: right;">
-        <p><strong>Montant HT :</strong> {{ facture.montant_ht|floatformat:0 }} FCA</p>
-        <p><strong>TVA ({{ facture.taux_tva }}%) :</strong> {{ facture.montant_tva|floatformat:0 }} FCA</p>
-        <p style="font-size: 1.3rem;"><strong>Total TTC :</strong> {{ facture.montant_total|floatformat:0 }} FCA</p>
-    </div>
-
-    <div style="margin-top: 2rem; text-align: center;">
-        <a href="{% url 'facture_pdf' facture.pk %}" class="btn btn-primary">Télécharger PDF</a>
-        <a href="{% url 'facture_email' facture.pk %}" class="btn btn-success">Envoyer par Email</a>
-        <a href="{% url 'facture_list' %}" class="btn btn-warning">Retour à la liste</a>
+    <!-- Actions -->
+    <div class="action-footer">
+        <a href="{% url 'facture_list' %}" class="btn btn-secondary">
+            <i class="fas fa-chevron-left"></i> Liste
+        </a>
+        <a href="{% url 'facture_pdf' facture.pk %}" class="btn btn-danger">
+            <i class="fas fa-file-pdf"></i> Télécharger PDF
+        </a>
+        <a href="{% url 'facture_email' facture.pk %}" class="btn btn-success">
+            <i class="fas fa-envelope"></i> Envoyer Email
+        </a>
+        <button onclick="window.print()" class="btn btn-primary">
+            <i class="fas fa-print"></i> Imprimer
+        </button>
     </div>
 </div>
 {% endblock %}

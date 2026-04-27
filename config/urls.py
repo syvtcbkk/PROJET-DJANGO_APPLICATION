@@ -113,22 +113,41 @@ def dashboard(request):
     factures  = Facture.objects.select_related('client').all()
     paiements = Paiement.objects.all()
 
-    if role == 'client':
-        # Le client voit seulement ses propres factures
-        try:
-            client = request.user.profile.client
-            mes_factures = Facture.objects.filter(client=client)
-        except:
-            mes_factures = Facture.objects.none()
-        return render(request, 'dashboard_client.html', {
-            'factures':      mes_factures,
-            'nb_factures':   mes_factures.count(),
-            'total_paye':    sum(p.montant for f in mes_factures for p in f.paiements.all()),
-            'total_impaye':  sum(f.solde_restant for f in mes_factures),
+    # Redirection selon le rôle
+    if role == 'admin' or request.user.is_staff:
+        return render(request, 'dashadmin.html', {
+            'total_facture':      sum(f.montant_total for f in factures),
+            'total_paye':         sum(p.montant for p in paiements),
+            'total_impaye':       sum(f.solde_restant for f in factures),
+            'nb_clients':         Client.objects.count(),
+            'nb_factures':        factures.count(),
+            'dernieres_factures': factures.order_by('-date')[:10],
+            'derniers_paiements': paiements.order_by('-date')[:10],
+            'nb_brouillon':       factures.filter(statut='brouillon').count(),
+            'nb_envoyee':         factures.filter(statut='envoyee').count(),
+            'nb_payee':           factures.filter(statut='payee').count(),
+        })
+
+    elif role == 'comptable':
+        from django.utils import timezone
+        today = timezone.now().date()
+        
+        # Stats du jour pour le comptable
+        factures_jour = Facture.objects.filter(date=today)
+        paiements_jour = Paiement.objects.filter(date=today)
+        
+        return render(request, 'dashcomptable.html', {
+            'nb_factures_jour':    factures_jour.count(),
+            'nb_paiements_jour':  paiements_jour.count(),
+            'total_jour':          sum(p.montant for p in paiements_jour),
+            'nb_en_attente':       Facture.objects.filter(statut='envoyee').count(),
+            'factures_en_attente': Facture.objects.filter(statut='envoyee')[:5],
+            'dernieres_factures':  Facture.objects.order_by('-date')[:5],
+            'derniers_paiements':  Paiement.objects.order_by('-date')[:5],
         })
 
     elif role == 'commercial':
-        return render(request, 'dashboard_commercial.html', {
+        return render(request, 'dashcommercial.html', {
             'nb_clients':        Client.objects.count(),
             'nb_factures':       factures.count(),
             'nb_brouillon':      factures.filter(statut='brouillon').count(),
@@ -136,15 +155,15 @@ def dashboard(request):
             'dernieres_factures': factures.order_by('-date')[:5],
         })
 
-    else:  # comptable ou staff
-        return render(request, 'dashboard_comptable.html', {
-            'total_facture':      sum(f.montant_total for f in factures),
-            'total_paye':         sum(p.montant for p in paiements),
-            'total_impaye':       sum(f.solde_restant for f in factures),
-            'nb_clients':         Client.objects.count(),
-            'dernieres_factures': factures.order_by('-date')[:5],
-            'derniers_paiements': paiements.order_by('-date')[:5],
-            'nb_brouillon':       factures.filter(statut='brouillon').count(),
-            'nb_envoyee':         factures.filter(statut='envoyee').count(),
-            'nb_payee':           factures.filter(statut='payee').count(),
+    else:  # client
+        try:
+            client = request.user.profile.client
+            mes_factures = Facture.objects.filter(client=client)
+        except:
+            mes_factures = Facture.objects.none()
+        return render(request, 'dashclient.html', {
+            'factures':      mes_factures,
+            'nb_factures':   mes_factures.count(),
+            'total_paye':    sum(p.montant for f in mes_factures for p in f.paiements.all()),
+            'total_impaye':  sum(f.solde_restant for f in mes_factures),
         })

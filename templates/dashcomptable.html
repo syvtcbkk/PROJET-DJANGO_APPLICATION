@@ -3,50 +3,81 @@
 {% block content %}
 
 <div class="page-header">
-    <h1>📊 Dashboard Comptable</h1>
-    <span style="color:#7f8c8d;">{{ today }}</span>
+    <h1>📊 Dashboard Comptable - {{ request.user.username }}</h1>
+    <span style="color:#7f8c8d;">{{ today|date:"d/m/Y" }}</span>
 </div>
 
-<div class="stats">
-    <div class="stat-card">
-        <h3>{{ nb_clients }}</h3>
-        <p>Total Clients</p>
+<!-- Stats du Jour -->
+<div class="stats-grid">
+    <div class="stat-card clients">
+        <div class="icon">📅</div>
+        <div class="value">{{ nb_factures_jour }}</div>
+        <div class="label">Factures Aujourd'hui</div>
     </div>
-    <div class="stat-card">
-        <h3>{{ total_facture }} FCFA</h3>
-        <p>Total Factures</p>
+    <div class="stat-card factures">
+        <div class="icon">💵</div>
+        <div class="value">{{ total_jour|floatformat:0 }} FCA</div>
+        <div class="label">Encaissé Aujourd'hui</div>
     </div>
-    <div class="stat-card">
-        <h3>{{ total_paye }} FCFA</h3>
-        <p>Total Payé</p>
+    <div class="stat-card paye">
+        <div class="icon">✅</div>
+        <div class="value">{{ nb_paiements_jour }}</div>
+        <div class="label">Paiements Aujourd'hui</div>
     </div>
-    <div class="stat-card">
-        <h3>{{ total_impaye }} FCFA</h3>
-        <p>Total Impayé</p>
+    <div class="stat-card impaye">
+        <div class="icon">⏳</div>
+        <div class="value">{{ nb_en_attente }}</div>
+        <div class="label">Factures en Attente</div>
     </div>
 </div>
 
-<div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+<!-- Résumé Rapide -->
+<div class="card" style="margin-bottom: 1.5rem;">
+    <h2>📋 Résumé du Jour</h2>
+    <div style="display: flex; gap: 2rem; padding: 1rem 0;">
+        <div style="text-align: center;">
+            <div style="font-size: 1.5rem; font-weight: bold; color: #3498db;">{{ nb_factures_jour }}</div>
+            <div style="color: #7f8c8d;">Nouvelles Factures</div>
+        </div>
+        <div style="text-align: center;">
+            <div style="font-size: 1.5rem; font-weight: bold; color: #27ae60;">{{ nb_paiements_jour }}</div>
+            <div style="color: #7f8c8d;">Paiements Reçus</div>
+        </div>
+        <div style="text-align: center;">
+            <div style="font-size: 1.5rem; font-weight: bold; color: #e74c3c;">{{ nb_en_attente }}</div>
+            <div style="color: #7f8c8d;">En Attente de Paiement</div>
+        </div>
+    </div>
+</div>
+
+<div style="display:grid; grid-template-columns:1fr 1fr; gap:1.5rem;">
     <div class="card">
-        <h2>📄 Dernières Factures</h2>
+        <h2>📄 Factures à Traiter</h2>
         <table>
             <thead>
                 <tr><th>N°</th><th>Client</th><th>Montant</th><th>Statut</th></tr>
             </thead>
             <tbody>
-                {% for f in dernieres_factures %}
+                {% for f in factures_en_attente %}
                 <tr>
                     <td>FAC-{{ f.pk|stringformat:"04d" }}</td>
                     <td>{{ f.client.nom }}</td>
-                    <td>{{ f.montant_total }} FCFA</td>
-                    <td>{{ f.get_statut_display }}</td>
+                    <td>{{ f.montant_total|floatformat:0 }} FCA</td>
+                    <td>
+                        <span class="badge badge-{{ f.statut }}">{{ f.get_statut_display }}</span>
+                    </td>
                 </tr>
+                {% empty %}
+                <tr><td colspan="4" style="text-align: center;">Aucune facture en attente</td></tr>
                 {% endfor %}
             </tbody>
         </table>
+        <div style="margin-top: 1rem;">
+            <a href="{% url 'facture_list' %}" class="btn btn-primary">Voir toutes les factures</a>
+        </div>
     </div>
     <div class="card">
-        <h2>💰 Derniers Paiements</h2>
+        <h2>💳 Derniers Paiements</h2>
         <table>
             <thead>
                 <tr><th>Date</th><th>Facture</th><th>Montant</th><th>Mode</th></tr>
@@ -54,14 +85,42 @@
             <tbody>
                 {% for p in derniers_paiements %}
                 <tr>
-                    <td>{{ p.date }}</td>
+                    <td>{{ p.date|date:"d/m/Y" }}</td>
                     <td>FAC-{{ p.facture.pk|stringformat:"04d" }}</td>
-                    <td>{{ p.montant }} FCFA</td>
+                    <td>{{ p.montant|floatformat:0 }} FCA</td>
                     <td>{{ p.get_mode_display }}</td>
                 </tr>
+                {% empty %}
+                <tr><td colspan="4" style="text-align: center;">Aucun paiement</td></tr>
                 {% endfor %}
             </tbody>
         </table>
+        <div style="margin-top: 1rem;">
+            <a href="{% url 'paiement_list' %}" class="btn btn-primary">Voir tous les paiements</a>
+        </div>
     </div>
 </div>
+
+<!-- Actions Comptable -->
+<div class="card" style="margin-top: 1.5rem;">
+    <h2>⚡ Actions Rapides</h2>
+    <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 1rem;">
+        <a href="{% url 'facture_create' %}" class="btn btn-success">+ Nouvelle Facture</a>
+        <a href="{% url 'paiement_list' %}" class="btn btn-primary">+ Enregistrer Paiement</a>
+        <a href="{% url 'client_list' %}" class="btn btn-secondary">Voir Clients</a>
+    </div>
+</div>
+
+<style>
+.badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+.badge-brouillon { background: #ecf0f1; color: #7f8c8d; }
+.badge-envoyee { background: #d4e6f1; color: #2980b9; }
+.badge-payee { background: #d5f4e6; color: #27ae60; }
+</style>
+
 {% endblock %}

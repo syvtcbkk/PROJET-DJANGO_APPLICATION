@@ -1,37 +1,142 @@
 {% extends 'base.html' %}
 
-{% block title %}{% if client %}Modifier{% else %}Nouveau{% endif %} Client{% endblock %}
+{% block title %}{% if form.instance.pk %}Modifier{% else %}Nouveau{% endif %} Client{% endblock %}
 
 {% block content %}
-<div class="card">
-    <h1>{% if client %}Modifier{% else %}Nouveau{% endif %} Client</h1>
+<style>
+    .form-container {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+    .form-header {
+        margin-bottom: 2rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    .form-header h1 {
+        color: #2c3e50;
+        font-size: 1.8rem;
+        margin: 0;
+    }
     
-    <form method="post">
-        {% csrf_token %}
-        <div class="form-group">
-            <label for="nom">Nom *</label>
-            <input type="text" id="nom" name="nom" value="{{ form.nom|default:'' }}" required>
-        </div>
-        
-        <div class="form-group">
-            <label for="email">Email *</label>
-            <input type="email" id="email" name="email" value="{{ form.email|default:'' }}" required>
-        </div>
-        
-        <div class="form-group">
-            <label for="telephone">Téléphone</label>
-            <input type="text" id="telephone" name="telephone" value="{{ form.telephone|default:'' }}">
-        </div>
-        
-        <div class="form-group">
-            <label for="adresse">Adresse</label>
-            <textarea id="adresse" name="adresse" rows="3">{{ form.adresse|default:'' }}</textarea>
-        </div>
-        
-        <div style="margin-top: 1rem;">
-            <button type="submit" class="btn btn-success">Enregistrer</button>
-            <a href="{% url 'client_list' %}" class="btn btn-danger">Annuler</a>
-        </div>
-    </form>
+    /* Style des groupes de champs */
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.5rem;
+    }
+    .full-width {
+        grid-column: span 2;
+    }
+
+    .form-group {
+        margin-bottom: 1.2rem;
+    }
+    .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+        color: #34495e;
+        font-size: 0.9rem;
+    }
+    .form-group input, 
+    .form-group textarea {
+        width: 100%;
+        padding: 0.8rem;
+        border: 2px solid #ecf0f1;
+        border-radius: 8px;
+        font-size: 1rem;
+        transition: border-color 0.3s, box-shadow 0.3s;
+        box-sizing: border-box;
+    }
+    .form-group input:focus, 
+    .form-group textarea:focus {
+        outline: none;
+        border-color: #3498db;
+        box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+    }
+
+    /* Actions */
+    .form-actions {
+        margin-top: 2rem;
+        padding-top: 1.5rem;
+        border-top: 2px solid #f8f9fa;
+        display: flex;
+        gap: 1rem;
+    }
+    .btn {
+        padding: 0.8rem 1.5rem;
+        font-weight: 600;
+        border-radius: 8px;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    @media (max-width: 600px) {
+        .form-grid { grid-template-columns: 1fr; }
+        .full-width { grid-column: span 1; }
+    }
+</style>
+
+<div class="form-container">
+    <div class="form-header">
+        <a href="{% url 'client_list' %}" style="text-decoration: none; color: #7f8c8d;">
+            <i class="fas fa-arrow-left"></i>
+        </a>
+        <h1>
+            {% if form.instance.pk %}
+                <i class="fas fa-user-edit" style="color: #f1c40f;"></i> Modifier le client
+            {% else %}
+                <i class="fas fa-user-plus" style="color: #27ae60;"></i> Nouveau Client
+            {% endif %}
+        </h1>
+    </div>
+
+    <div class="card">
+        <form method="post">
+            {% csrf_token %}
+            
+            <div class="form-grid">
+                <div class="form-group full-width">
+                    <label for="nom">Nom complet ou Raison sociale *</label>
+                    <input type="text" id="nom" name="nom" 
+                           value="{{ form.nom.value|default:'' }}" 
+                           placeholder="Ex: Jean Dupont ou SARL Innov" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="email">Adresse Email *</label>
+                    <input type="email" id="email" name="email" 
+                           value="{{ form.email.value|default:'' }}" 
+                           placeholder="exemple@mail.com" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="telephone">Téléphone</label>
+                    <input type="text" id="telephone" name="telephone" 
+                           value="{{ form.telephone.value|default:'' }}" 
+                           placeholder="+241 ...">
+                </div>
+                
+                <div class="form-group full-width">
+                    <label for="adresse">Adresse physique</label>
+                    <textarea id="adresse" name="adresse" rows="3" 
+                              placeholder="Quartier, Rue, Ville...">{{ form.adresse.value|default:'' }}</textarea>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-success">
+                    <i class="fas fa-save"></i> Enregistrer les informations
+                </button>
+                <a href="{% url 'client_list' %}" class="btn btn-danger">
+                    Annuler
+                </a>
+            </div>s
+        </form>
+    </div>
 </div>
 {% endblock %}

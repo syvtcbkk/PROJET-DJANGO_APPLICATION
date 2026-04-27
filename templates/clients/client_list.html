@@ -1,40 +1,153 @@
 {% extends 'base.html' %}
 
-{% block title %}Liste des Clients{% endblock %}
+{% block title %}Liste des Clients - Gestion Facturation{% endblock %}
 
 {% block content %}
-<div class="card">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-        <h1>Liste des Clients</h1>
-        <a href="{% url 'client_create' %}" class="btn btn-primary">+ Nouveau Client</a>
-    </div>
-    
+<style>
+    .list-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+    }
+    .list-header h1 {
+        color: #2c3e50;
+        font-size: 1.8rem;
+        margin: 0;
+    }
+
+    /* Tableau stylisé */
+    .table-container {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        overflow: hidden;
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    th {
+        background: #f8f9fa;
+        color: #7f8c8d;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.8rem;
+        letter-spacing: 0.5px;
+        padding: 15px 20px;
+        text-align: left;
+        border-bottom: 2px solid #ecf0f1;
+    }
+    td {
+        padding: 15px 20px;
+        vertical-align: middle;
+        border-bottom: 1px solid #ecf0f1;
+        color: #2c3e50;
+        font-size: 0.95rem;
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:hover { background-color: #fcfcfc; }
+
+    /* Avatar Client */
+    .client-info {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    .avatar {
+        width: 35px;
+        height: 35px;
+        background: #3498db;
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 0.8rem;
+    }
+
+    /* Badges & Buttons */
+    .contact-link {
+        color: #7f8c8d;
+        text-decoration: none;
+        transition: color 0.2s;
+    }
+    .contact-link:hover { color: #3498db; }
+
+    .action-btns {
+        display: flex;
+        gap: 8px;
+        justify-content: flex-end;
+    }
+    .btn-sm {
+        padding: 6px 10px;
+        font-size: 0.8rem;
+        border-radius: 6px;
+    }
+</style>
+
+<div class="list-header">
+    <h1><i class="fas fa-users"></i> Liste des Clients</h1>
+    <a href="{% url 'client_create' %}" class="btn btn-primary">
+        <i class="fas fa-plus"></i> Nouveau Client
+    </a>
+</div>
+
+<div class="table-container card">
     <table>
         <thead>
             <tr>
-                <th>Nom</th>
+                <th>Nom du Client</th>
                 <th>Email</th>
                 <th>Téléphone</th>
-                <th>Actions</th>
+                <th style="text-align: right;">Actions</th>
             </tr>
         </thead>
         <tbody>
             {% for client in clients %}
             <tr>
-                <td>{{ client.nom }}</td>
-                <td>{{ client.email }}</td>
-                <td>{{ client.telephone|default:"-" }}</td>
                 <td>
-                    <a href="{% url 'client_detail' client.pk %}" class="btn btn-primary">Voir</a>
-                    <a href="{% url 'client_edit' client.pk %}" class="btn btn-warning">Modifier</a>
+                    <div class="client-info">
+                        <div class="avatar">
+                            {{ client.nom|slice:":1"|upper }}
+                        </div>
+                        <span style="font-weight: 600;">{{ client.nom }}</span>
+                    </div>
+                </td>
+                <td>
+                    <a href="mailto:{{ client.email }}" class="contact-link">
+                        <i class="far fa-envelope"></i> {{ client.email }}
+                    </a>
+                </td>
+                <td>
+                    {% if client.telephone %}
+                        <span class="contact-link"><i class="fas fa-phone-alt"></i> {{ client.telephone }}</span>
+                    {% else %}
+                        <span style="color: #bdc3c7; font-style: italic;">Non renseigné</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <div class="action-btns">
+                        <a href="{% url 'client_detail' client.pk %}" class="btn btn-primary btn-sm" title="Détails">
+                            <i class="fas fa-eye"></i>
+                        </a>
+                        <a href="{% url 'client_edit' client.pk %}" class="btn btn-warning btn-sm" title="Modifier">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                    </div>
                 </td>
             </tr>
             {% empty %}
             <tr>
-                <td colspan="4" style="text-align: center;">Aucun client trouvé.</td>
+                <td colspan="4" style="text-align: center; padding: 3rem; color: #95a5a6;">
+                    <i class="fas fa-user-slash" style="font-size: 2rem; display: block; margin-bottom: 1rem;"></i>
+                    Aucun client trouvé dans la base de données.
+                </td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
 </div>
+
 {% endblock %}

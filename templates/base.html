@@ -4,264 +4,208 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Gestion Facturation{% endblock %}</title>
+    <!-- FontAwesome pour les icônes -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <style>
+        :root {
+            --primary-dark: #1a252f;
+            --primary-light: #2c3e50;
+            --accent: #3498db;
+            --accent-hover: #2980b9;
+            --success: #27ae60;
+            --success-hover: #219150;
+            --danger: #e74c3c;
+            --danger-hover: #c0392b;
+            --warning: #f39c12;
+            --bg-body: #f5f7fa;
+            --text-main: #2c3e50;
+            --text-light: #7f8c8d;
+            --white: #ffffff;
+        }
+
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', Arial, sans-serif; background: #f5f7fa; }
+        body { font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background: var(--bg-body); color: var(--text-main); line-height: 1.6; }
         
         /* Navbar */
         .navbar {
-            background: linear-gradient(135deg, #1a252f 0%, #2c3e50 100%);
-            padding: 1rem 2rem;
+            background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-light) 100%);
+            padding: 0.8rem 2rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
         }
         .navbar .brand {
-            font-size: 1.5rem;
-            font-weight: bold;
+            font-size: 1.4rem;
+            font-weight: 800;
             color: white;
+            letter-spacing: -0.5px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
         .navbar .nav-links {
             display: flex;
             align-items: center;
             gap: 0.5rem;
         }
-        .navbar .nav-links .btn-home {
-            background: rgba(255,255,255,0.15);
-            color: white;
-            padding: 0.5rem 1rem;
-            border-radius: 6px;
-            text-decoration: none;
-            font-weight: 500;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        .navbar .nav-links .btn-home:hover {
-            background: rgba(255,255,255,0.25);
-            transform: translateY(-1px);
-        }
         .navbar a {
-            color: rgba(255,255,255,0.85);
+            color: rgba(255,255,255,0.8);
             text-decoration: none;
-            padding: 0.5rem 1rem;
-            border-radius: 6px;
-            transition: all 0.3s ease;
+            padding: 0.6rem 0.9rem;
+            border-radius: 8px;
+            transition: all 0.2s ease;
             font-weight: 500;
+            font-size: 0.95rem;
         }
-        .navbar a:hover {
-            background: rgba(255,255,255,0.1);
+        .navbar a:hover, .navbar a.active {
+            background: rgba(255,255,255,0.15);
             color: white;
         }
         
-        /* User info & Logout */
-        .user-info {
+        /* User Profile & Actions */
+        .user-group {
             display: flex;
             align-items: center;
             gap: 1rem;
-            margin-left: 1rem;
+            padding-left: 1rem;
+            border-left: 1px solid rgba(255,255,255,0.2);
         }
-        .user-name {
-            color: #bdc3c7;
-            font-size: 0.95rem;
+        .user-badge {
+            color: white;
+            background: rgba(255,255,255,0.1);
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
         }
         .btn-logout {
-            background: #e74c3c;
+            background: var(--danger);
             color: white;
             border: none;
-            padding: 0.5rem 1rem;
+            padding: 0.5rem 0.8rem;
             border-radius: 6px;
             cursor: pointer;
-            font-size: 0.9rem;
-            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        .btn-logout:hover { background: #ff5e4d; transform: scale(1.05); }
+
+        /* BOUTONS UNIFORMISÉS */
+        .btn {
             display: inline-flex;
             align-items: center;
-            gap: 0.5rem;
-            transition: all 0.3s ease;
-            text-decoration: none;
-        }
-        .btn-logout:hover {
-            background: #c0392b;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(231, 76, 60, 0.4);
-        }
-        .btn-login {
-            background: #3498db;
-            color: white;
-            padding: 0.5rem 1rem;
-            border-radius: 6px;
-            text-decoration: none;
-            font-weight: 500;
-            transition: all 0.3s ease;
-        }
-        .btn-login:hover {
-            background: #2980b9;
-            color: white;
-        }
-        
-        /* Container */
-        .container {
-            max-width: 1200px;
-            margin: 2rem auto;
-            padding: 0 1rem;
-        }
-        
-        /* Cards */
-        .card {
-            background: white;
-            border-radius: 12px;
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-        }
-        
-        /* Buttons */
-        .btn {
-            padding: 0.6rem 1.2rem;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            text-decoration: none;
-            display: inline-block;
-            font-weight: 500;
-            transition: all 0.3s ease;
-        }
-        .btn-primary { background: #3498db; color: white; }
-        .btn-primary:hover { background: #2980b9; }
-        .btn-success { background: #27ae60; color: white; }
-        .btn-success:hover { background: #219a52; }
-        .btn-danger { background: #e74c3c; color: white; }
-        .btn-danger:hover { background: #c0392b; }
-        .btn-warning { background: #f39c12; color: white; }
-        .btn-warning:hover { background: #e67e22; }
-        
-        /* Tables */
-        table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 14px; text-align: left; border-bottom: 1px solid #ecf0f1; }
-        th { 
-            background: #34495e; 
-            color: white; 
-            font-weight: 600;
-        }
-        tr:hover { background: #f8f9fa; }
-        
-        /* Forms */
-        .form-group { margin-bottom: 1.2rem; }
-        .form-group label { 
-            display: block; 
-            margin-bottom: 0.5rem; 
-            font-weight: 600; 
-            color: #2c3e50; 
-        }
-        .form-group input, 
-        .form-group select, 
-        .form-group textarea { 
-            width: 100%; 
-            padding: 0.75rem; 
-            border: 2px solid #e9ecef; 
-            border-radius: 8px; 
-            font-size: 1rem;
-            transition: border-color 0.3s ease;
-        }
-        .form-group input:focus,
-        .form-group select:focus,
-        .form-group textarea:focus {
-            outline: none;
-            border-color: #3498db;
-        }
-        
-        /* Alerts */
-        .alert {
-            padding: 1rem;
+            justify-content: center;
+            gap: 8px;
+            padding: 0.7rem 1.25rem;
             border-radius: 8px;
-            margin-bottom: 1rem;
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
         }
-        .alert-success { background: #d4edda; color: #155724; border-left: 4px solid #27ae60; }
-        .alert-error { background: #f8d7da; color: #721c24; border-left: 4px solid #e74c3c; }
+        .btn:active { transform: scale(0.98); }
+
+        .btn-primary { background: var(--accent); color: var(--white); }
+        .btn-primary:hover { background: var(--accent-hover); box-shadow: 0 4px 10px rgba(52, 152, 219, 0.3); }
+
+        .btn-success { background: var(--success); color: var(--white); }
+        .btn-success:hover { background: var(--success-hover); box-shadow: 0 4px 10px rgba(39, 174, 96, 0.3); }
+
+        .btn-danger { background: var(--danger); color: var(--white); }
+        .btn-danger:hover { background: var(--danger-hover); box-shadow: 0 4px 10px rgba(231, 76, 60, 0.3); }
+
+        .btn-secondary { background: #95a5a6; color: var(--white); }
+        .btn-secondary:hover { background: #7f8c8d; }
+
+        /* TABLEAUX MODERNES */
+        table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+        th { text-align: left; padding: 12px; color: var(--text-light); font-size: 0.85rem; text-transform: uppercase; border-bottom: 2px solid #edf2f7; }
+        td { padding: 15px 12px; border-bottom: 1px solid #edf2f7; vertical-align: middle; }
+        tr:hover { background-color: #f8fafc; }
+
+        /* ALERTES */
+        .messages-container { max-width: 1200px; margin: 1rem auto 0; padding: 0 1rem; }
+        .alert { padding: 1rem 1.5rem; border-radius: 8px; margin-bottom: 1rem; display: flex; align-items: center; gap: 12px; animation: slideIn 0.4s ease-out; }
+        @keyframes slideIn { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .alert-success { background: #d1e7dd; color: #0f5132; border-left: 5px solid var(--success); }
+        .alert-error, .alert-danger { background: #f8d7da; color: #842029; border-left: 5px solid var(--danger); }
+
+        /* CONTENEURS */
+        .container { max-width: 1200px; margin: 2rem auto; padding: 0 1.5rem; min-height: 80vh; }
+        .card { background: var(--white); border-radius: 12px; padding: 2rem; box-shadow: 0 5px 15px rgba(0,0,0,0.05); border: 1px solid #edf2f7; }
         
-        /* Stats */
-        .stats {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-        }
-        .stat-card {
-            background: white;
-            padding: 1.5rem;
-            border-radius: 12px;
-            text-align: center;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-        }
-        .stat-card h3 { font-size: 2.2rem; color: #3498db; margin-bottom: 0.5rem; }
-        .stat-card p { color: #7f8c8d; font-size: 0.95rem; }
+        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
         
-        /* Page header */
-        .page-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 2rem;
-        }
-        .page-header h1 { color: #2c3e50; font-size: 1.8rem; }
+        /* BADGES DE STATUT */
+        .badge { padding: 4px 12px; border-radius: 50px; font-size: 0.75rem; font-weight: 700; }
+        .badge-payee { background: #d5f4e6; color: var(--success); }
+        .badge-envoyee { background: #d4e6f1; color: var(--accent); }
+        .badge-brouillon { background: #f1f5f9; color: #64748b; }
     </style>
 </head>
 <body>
-  <nav class="navbar">
-    <div class="brand">Gestion Facturation</div>
+
+<nav class="navbar">
+    <div class="brand">
+        <i class=""></i> G-FAC
+    </div>
+    
     <div class="nav-links">
         {% if user.is_authenticated %}
-            
-            {# 1. ACCÈS POUR LE STAFF (COMMERCIAL, COMPTABLE, ADMIN) #}
             {% if user.profile.role != 'client' %} 
-                <a href="{% url 'client_list' %}">Clients</a>
-                <a href="{% url 'facture_list' %}">Factures</a>
-                <a href="{% url 'paiement_list' %}">Paiements</a>
+                <a href="{% url 'client_list' %}"><i class="fas fa-users"></i> Clients</a>
+                <a href="{% url 'facture_list' %}"><i class="fas fa-file-alt"></i> Factures</a>
+                <a href="{% url 'paiement_list' %}"><i class="fas fa-credit-card"></i> Paiements</a>
+            {% else %}
+                <a href="{% url 'dashboard' %}"><i class="fas fa-chart-line"></i> Mon Dashboard</a>
             {% endif %}
 
-            {# 2. ACCÈS CLIENT UNIQUEMENT #}
-            {% if user.profile.role == 'client' %}
-                {# Le client voit son propre dashboard simplifié #}
-                 <a href="{% url 'dashboard' %}">Mes Factures</a>
-            {% endif %}
-
-            {# 3. ACCÈS ADMINISTRATION (Invisible pour le client) #}
             {% if user.is_staff %}
-                <a href="{% url 'admin_dashboard' %}">⚙️ Admin</a>
+                <a href="{% url 'admin_dashboard' %}" style="color: var(--warning);"><i class="fas fa-user-shield"></i> Admin</a>
             {% endif %}
 
-            <div class="user-info">
-                <span class="user-name">👤 {{ user.username }}</span>
+            <div class="user-group">
+                <span class="user-badge">
+                    <i class="fas fa-user-circle"></i> {{ user.username|capfirst }}
+                </span>
                 <form method="post" action="{% url 'logout' %}" style="display:inline;">
                     {% csrf_token %}
-                    <button type="submit" class="btn-logout">Déconnexion</button>
+                    <button type="submit" class="btn-logout" title="Déconnexion">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </button>
                 </form>
             </div>
         {% else %}
-            <a href="{% url 'login' %}" class="btn-login">Connexion</a>
+            <a href="{% url 'login' %}" class="btn btn-primary">
+                <i class="fas fa-sign-in-alt"></i> Connexion
+            </a>
         {% endif %}
     </div>
 </nav>
-    
-    <div class="container">
-        {% block content %}{% endblock %}
-    </div>
 
-    <div class="container">
-        {% if messages %}
-            {% for message in messages %}
-                <div class="alert alert-{{ message.tags }}">
-                    {{ message }}
-                </div>
-            {% endfor %}
-        {% endif %}
-    </div>
-
-</body>
-</html>
-
+<div class="messages-container">
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                <i class="fas {% if message.tags == 'success' %}fa-check-circle{% else %}fa-exclamation-circle{% endif %}"></i>
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
 </div>
+
+<main class="container">
+    {% block content %}{% endblock %}
+</main>
+
+<footer style="text-align: center; padding: 3rem; color: var(--text-light); font-size: 0.85rem;">
+    &copy; 2026 Gestion Facturation &bull; <i class="fas fa-shield-alt"></i> Système Sécurisé
+</footer>
+
 </body>
 </html>
