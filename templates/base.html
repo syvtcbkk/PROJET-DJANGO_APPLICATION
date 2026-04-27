@@ -209,19 +209,29 @@
     </style>
 </head>
 <body>
-   <nav class="navbar">
+  <nav class="navbar">
     <div class="brand">Gestion Facturation</div>
     <div class="nav-links">
         {% if user.is_authenticated %}
-            <a href="{% url 'dashboard' %}">Dashboard</a>
-            {% if user.profile.role != 'client' %}
+            
+            {# 1. ACCÈS POUR LE STAFF (COMMERCIAL, COMPTABLE, ADMIN) #}
+            {% if user.profile.role != 'client' %} 
                 <a href="{% url 'client_list' %}">Clients</a>
                 <a href="{% url 'facture_list' %}">Factures</a>
                 <a href="{% url 'paiement_list' %}">Paiements</a>
             {% endif %}
+
+            {# 2. ACCÈS CLIENT UNIQUEMENT #}
+            {% if user.profile.role == 'client' %}
+                {# Le client voit son propre dashboard simplifié #}
+                 <a href="{% url 'dashboard' %}">Mes Factures</a>
+            {% endif %}
+
+            {# 3. ACCÈS ADMINISTRATION (Invisible pour le client) #}
             {% if user.is_staff %}
                 <a href="{% url 'admin_dashboard' %}">⚙️ Admin</a>
             {% endif %}
+
             <div class="user-info">
                 <span class="user-name">👤 {{ user.username }}</span>
                 <form method="post" action="{% url 'logout' %}" style="display:inline;">

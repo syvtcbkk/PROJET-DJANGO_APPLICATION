@@ -23,9 +23,12 @@ class Facture(models.Model):
         return f"FAC-{self.pk:04d} - {self.client.nom}"
 
     def save(self, *args, **kwargs):
-        # Calculer le montant TVA et total
-        self.montant_tva = self.montant_ht * self.taux_tva / 100
-        self.montant_total = self.montant_ht + self.montant_tva
+        # On s'assure que montant_ht et taux_tva ne sont pas None
+        ht = self.montant_ht or 0
+        taux = self.taux_tva or 0
+        
+        self.montant_tva = ht * taux / 100
+        self.montant_total = ht + self.montant_tva
         super().save(*args, **kwargs)
 
     @property
@@ -40,9 +43,13 @@ class Facture(models.Model):
 class LigneFacture(models.Model):
     facture     = models.ForeignKey(Facture, on_delete=models.CASCADE)
     designation = models.CharField(max_length=300)
-    quantite    = models.DecimalField(max_digits=10, decimal_places=2)
-    prix_unit   = models.DecimalField(max_digits=12, decimal_places=2)
+    # Ajout de default=0 pour éviter les valeurs None
+    quantite    = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    prix_unit   = models.DecimalField(max_digits=12, decimal_places=2, default=0)
 
     @property
     def total(self):
+        # Sécurité : si l'un des deux est None, on retourne 0
+        if self.quantite is None or self.prix_unit is None:
+            return 0
         return self.quantite * self.prix_unit

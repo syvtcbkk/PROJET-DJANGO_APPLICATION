@@ -16,6 +16,7 @@ from factures.models import Facture
 from paiements.models import Paiement
 from config.forms import PasswordResetForm
 from clients.models import Profile
+from clients.views import register  
 
 class EmailPasswordResetView(PasswordResetView):
     """Vue de réinitialisation de mot de passe par email"""
@@ -90,20 +91,9 @@ def dashboard(request):
 urlpatterns = [
     path('admin/',     admin.site.urls),
     path('login/',     auth_views.LoginView.as_view(template_name='registration/login.html'), name='login'),
-    path('logout/', auth_views.LogoutView.as_view(
-    next_page='/login/'
-), name='logout'),
-    path('password_reset/', 
-        EmailPasswordResetView.as_view(
-            template_name='registration/password_reset_form.html',
-            success_url='/password_reset/done/'
-        ), 
-        name='password_reset'),
-    path('password_reset/done/', 
-        auth_views.PasswordResetDoneView.as_view(
-            template_name='registration/password_reset_done.html'
-        ), 
-        name='password_reset_done'),
+    path('logout/', auth_views.LogoutView.as_view( next_page='/login/'), name='logout'),
+    path('password_reset/', EmailPasswordResetView.as_view(template_name='registration/password_reset_form.html',success_url='/password_reset/done/'), name='password_reset'),
+    path('password_reset/done/', auth_views.PasswordResetDoneView.as_view(template_name='registration/password_reset_done.html'),  name='password_reset_done'),
     path('reset/<uidb64>/<token>/', 
         auth_views.PasswordResetConfirmView.as_view(
             template_name='registration/password_reset_confirm.html',
@@ -116,9 +106,11 @@ urlpatterns = [
         ), 
         name='password_reset_complete'),
     path('',           dashboard,                       name='dashboard'),
+    path('admin-dashboard/', dashboard, name='admin_dashboard'),
     path('clients/',   include('clients.urls')),
     path('factures/',  include('factures.urls')),
     path('paiements/', include('paiements.urls')),
+    path('register/', register, name='register'),
 ]
 
 @login_required

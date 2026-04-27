@@ -178,6 +178,10 @@
 
                 <button type="submit" class="btn-login">
                     Se connecter
+                    <p style="text-align: center; margin-top: 1rem;">
+                    Pas encore de compte ? <a href="{% url 'register' %}">Inscrivez-vous ici</a>
+                       </p>
+                    
                 </button>
                 
                 <input type="hidden" name="next" value="{{ next }}">
