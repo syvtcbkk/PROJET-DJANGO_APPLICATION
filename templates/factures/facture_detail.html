@@ -6,13 +6,18 @@
 <div class="card">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
         <h1>Facture FAC-{{ facture.pk|stringformat:"04d" }}</h1>
-        <a href="{% url 'facture_list' %}" class="btn btn-primary">Retour</a>
-        <a href="{% url 'facture_pdf' facture.pk %}" class="btn btn-danger">
-    📄 Télécharger PDF
-    <a href="{% url 'facture_email' facture.pk %}" class="btn btn-success">
-    📧 Envoyer par Email
-</a>
-</a>
+        <div style="display: flex; gap: 0.5rem;">
+            <a href="{% url 'facture_list' %}" class="btn btn-primary">Retour</a>
+            <button onclick="window.print()" class="btn btn-info">
+                Imprimer
+            </button>
+            <a href="{% url 'facture_pdf' facture.pk %}" class="btn btn-danger">
+                PDF
+            </a>
+            <a href="{% url 'facture_email' facture.pk %}" class="btn btn-success">
+                Email
+            </a>
+        </div>
     </div>
     
     <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 2rem;">

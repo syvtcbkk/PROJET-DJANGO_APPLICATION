@@ -1,5 +1,7 @@
 from django.db import models
+from django.utils import timezone
 from clients.models import Client
+
 
 class Facture(models.Model):
     STATUTS = [
@@ -14,6 +16,8 @@ class Facture(models.Model):
     taux_tva      = models.DecimalField(max_digits=5,  decimal_places=2, default=18)
     montant_tva   = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     montant_total = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    created_at    = models.DateTimeField(auto_now_add=True)
+    updated_at    = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return f"FAC-{self.pk:04d} - {self.client.nom}"
@@ -28,6 +32,9 @@ class Facture(models.Model):
     def solde_restant(self):
         total_paye = sum(p.montant for p in self.paiement_set.all())
         return self.montant_total - total_paye
+
+    class Meta:
+        ordering = ('-date',)
 
 
 class LigneFacture(models.Model):

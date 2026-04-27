@@ -14,7 +14,7 @@
                 <option value="">Sélectionner une facture</option>
                 {% for facture in factures %}
                 <option value="{{ facture.pk }}">
-                    FAC-{{ facture.pk|stringformat:"04d" }} - {{ facture.client.nom }} - {{ facture.montant_total }} € (Restant: {{ facture.solde_restant }} €)
+                    FAC-{{ facture.pk|stringformat:"04d" }} - {{ facture.client.nom }} - {{ facture.montant_total }} FCFA (Restant: {{ facture.solde_restant }} FCFA)
                 </option>
                 {% endfor %}
             </select>
