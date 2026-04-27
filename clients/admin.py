@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.utils.html import format_html
 from .models import Client
-
+from .models import Client, Profile
 
 @admin.register(Client)
 class ClientAdmin(admin.ModelAdmin):
@@ -35,3 +35,7 @@ class ClientAdmin(admin.ModelAdmin):
         total = sum(f.montant_total for f in obj.facture_set.all())
         return f'{total:,.0f} €'
     total_ca.short_description = 'CA Total'
+
+    @admin.register(Profile)
+    class ProfileAdmin(admin.ModelAdmin):
+     list_display = ('user', 'role', 'client')
