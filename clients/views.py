@@ -2,7 +2,6 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from .models import Client
 from django.contrib import messages
-from .forms import RegistrationForm
 from .models import Profile
 
 @login_required
@@ -52,19 +51,3 @@ def client_delete(request, pk):
     return render(request, 'confirm_delete.html', {'object': client, 'cancel_url': '/clients/'})
 
 
-def register(request):
-    if request.method == 'POST':
-        form = RegistrationForm(request.POST)
-        if form.is_valid():
-            user = form.save(commit=False)
-            user.set_password(form.cleaned_data['password'])
-            user.save()
-            
-            # Créer le profil associé avec le rôle client par défaut
-            Profile.objects.create(user=user, role='client')
-            
-            messages.success(request, f"Compte créé pour {user.username} ! Vous pouvez vous connecter.")
-            return redirect('login')
-    else:
-        form = RegistrationForm()
-    return render(request, 'registration/register.html', {'form': form})
