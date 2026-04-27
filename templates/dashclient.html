@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% block title %}Mes Factures{% endblock %}
+{% block content %}
+
+<div class="page-header">
+    <h1>👤 Mes Factures</h1>
+</div>
+
+<div class="stats">
+    <div class="stat-card">
+        <h3>{{ nb_factures }}</h3>
+        <p>Total Factures</p>
+    </div>
+    <div class="stat-card">
+        <h3>{{ total_paye }} FCFA</h3>
+        <p>Total Payé</p>
+    </div>
+    <div class="stat-card">
+        <h3>{{ total_impaye }} FCFA</h3>
+        <p>Reste à Payer</p>
+    </div>
+</div>
+
+<div class="card">
+    <h2>📄 Mes Factures</h2>
+    <table>
+        <thead>
+            <tr><th>N°</th><th>Date</th><th>Montant</th><th>Statut</th><th>Action</th></tr>
+        </thead>
+        <tbody>
+            {% for f in factures %}
+            <tr>
+                <td>FAC-{{ f.pk|stringformat:"04d" }}</td>
+                <td>{{ f.date }}</td>
+                <td>{{ f.montant_total }} FCFA</td>
+                <td>{{ f.get_statut_display }}</td>
+                <td>
+                    <a href="{% url 'facture_detail' f.pk %}" class="btn btn-primary">Voir</a>
+                    <a href="{% url 'facture_pdf' f.pk %}" class="btn btn-danger">PDF</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" style="text-align:center;">Aucune facture</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

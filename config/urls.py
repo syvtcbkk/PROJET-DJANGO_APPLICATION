@@ -15,7 +15,7 @@ from clients.models import Client
 from factures.models import Facture
 from paiements.models import Paiement
 from config.forms import PasswordResetForm
-
+from clients.models import Profile
 
 class EmailPasswordResetView(PasswordResetView):
     """Vue de réinitialisation de mot de passe par email"""
@@ -120,3 +120,50 @@ urlpatterns = [
     path('factures/',  include('factures.urls')),
     path('paiements/', include('paiements.urls')),
 ]
+
+@login_required
+def dashboard(request):
+    try:
+        profile = request.user.profile
+        role = profile.role
+    except:
+        role = 'comptable' if request.user.is_staff else 'client'
+
+    factures  = Facture.objects.select_related('client').all()
+    paiements = Paiement.objects.all()
+
+    if role == 'client':
+        # Le client voit seulement ses propres factures
+        try:
+            client = request.user.profile.client
+            mes_factures = Facture.objects.filter(client=client)
+        except:
+            mes_factures = Facture.objects.none()
+        return render(request, 'dashboard_client.html', {
+            'factures':      mes_factures,
+            'nb_factures':   mes_factures.count(),
+            'total_paye':    sum(p.montant for f in mes_factures for p in f.paiements.all()),
+            'total_impaye':  sum(f.solde_restant for f in mes_factures),
+        })
+
+    elif role == 'commercial':
+        return render(request, 'dashboard_commercial.html', {
+            'nb_clients':        Client.objects.count(),
+            'nb_factures':       factures.count(),
+            'nb_brouillon':      factures.filter(statut='brouillon').count(),
+            'nb_envoyee':        factures.filter(statut='envoyee').count(),
+            'dernieres_factures': factures.order_by('-date')[:5],
+        })
+
+    else:  # comptable ou staff
+        return render(request, 'dashboard_comptable.html', {
+            'total_facture':      sum(f.montant_total for f in factures),
+            'total_paye':         sum(p.montant for p in paiements),
+            'total_impaye':       sum(f.solde_restant for f in factures),
+            'nb_clients':         Client.objects.count(),
+            'dernieres_factures': factures.order_by('-date')[:5],
+            'derniers_paiements': paiements.order_by('-date')[:5],
+            'nb_brouillon':       factures.filter(statut='brouillon').count(),
+            'nb_envoyee':         factures.filter(statut='envoyee').count(),
+            'nb_payee':           factures.filter(statut='payee').count(),
+        })

@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard Commercial{% endblock %}
+{% block content %}
+
+<div class="page-header">
+    <h1>🛒 Dashboard Commercial</h1>
+</div>
+
+<div class="stats">
+    <div class="stat-card">
+        <h3>{{ nb_clients }}</h3>
+        <p>Mes Clients</p>
+    </div>
+    <div class="stat-card">
+        <h3>{{ nb_factures }}</h3>
+        <p>Factures</p>
+    </div>
+    <div class="stat-card">
+        <h3>{{ nb_brouillon }}</h3>
+        <p>Brouillons</p>
+    </div>
+    <div class="stat-card">
+        <h3>{{ nb_envoyee }}</h3>
+        <p>Envoyées</p>
+    </div>
+</div>
+
+<div class="card">
+    <div class="page-header">
+        <h2>📄 Factures récentes</h2>
+        <a href="{% url 'facture_create' %}" class="btn btn-primary">+ Nouvelle Facture</a>
+    </div>
+    <table>
+        <thead>
+            <tr><th>N°</th><th>Client</th><th>Date</th><th>Montant</th><th>Statut</th><th>Action</th></tr>
+        </thead>
+        <tbody>
+            {% for f in dernieres_factures %}
+            <tr>
+                <td>FAC-{{ f.pk|stringformat:"04d" }}</td>
+                <td>{{ f.client.nom }}</td>
+                <td>{{ f.date }}</td>
+                <td>{{ f.montant_total }} FCFA</td>
+                <td>{{ f.get_statut_display }}</td>
+                <td><a href="{% url 'facture_detail' f.pk %}" class="btn btn-primary">Voir</a></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

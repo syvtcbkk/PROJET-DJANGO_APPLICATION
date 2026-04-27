@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard Comptable{% endblock %}
+{% block content %}
+
+<div class="page-header">
+    <h1>📊 Dashboard Comptable</h1>
+    <span style="color:#7f8c8d;">{{ today }}</span>
+</div>
+
+<div class="stats">
+    <div class="stat-card">
+        <h3>{{ nb_clients }}</h3>
+        <p>Total Clients</p>
+    </div>
+    <div class="stat-card">
+        <h3>{{ total_facture }} FCFA</h3>
+        <p>Total Factures</p>
+    </div>
+    <div class="stat-card">
+        <h3>{{ total_paye }} FCFA</h3>
+        <p>Total Payé</p>
+    </div>
+    <div class="stat-card">
+        <h3>{{ total_impaye }} FCFA</h3>
+        <p>Total Impayé</p>
+    </div>
+</div>
+
+<div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+    <div class="card">
+        <h2>📄 Dernières Factures</h2>
+        <table>
+            <thead>
+                <tr><th>N°</th><th>Client</th><th>Montant</th><th>Statut</th></tr>
+            </thead>
+            <tbody>
+                {% for f in dernieres_factures %}
+                <tr>
+                    <td>FAC-{{ f.pk|stringformat:"04d" }}</td>
+                    <td>{{ f.client.nom }}</td>
+                    <td>{{ f.montant_total }} FCFA</td>
+                    <td>{{ f.get_statut_display }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="card">
+        <h2>💰 Derniers Paiements</h2>
+        <table>
+            <thead>
+                <tr><th>Date</th><th>Facture</th><th>Montant</th><th>Mode</th></tr>
+            </thead>
+            <tbody>
+                {% for p in derniers_paiements %}
+                <tr>
+                    <td>{{ p.date }}</td>
+                    <td>FAC-{{ p.facture.pk|stringformat:"04d" }}</td>
+                    <td>{{ p.montant }} FCFA</td>
+                    <td>{{ p.get_mode_display }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
