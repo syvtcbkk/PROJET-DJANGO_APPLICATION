@@ -27,7 +27,7 @@ SECRET_KEY = 'django-insecure-l)6nebz+j=d5cajh9h)6-yf(1=$%$^!t%!ynrfwous8zyy^286
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 
 
 # Application definition
@@ -145,3 +145,7 @@ EMAIL_USE_TLS   = True
 EMAIL_HOST_USER = 'mohamedosseni83@gmail.com'      # ← ton Gmail
 EMAIL_HOST_PASSWORD = 'twlk kbfu uwpf elgv' # ← mot de passe d'application
 DEFAULT_FROM_EMAIL = 'mohamedosseni83@gmail.com'
+
+# Site configuration for password reset emails
+SITE_ID = 1
+ABSOLUTE_URL_BASE = 'http://127.0.0.1:8000'

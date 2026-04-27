@@ -34,7 +34,7 @@ def paiement_create(request):
         if facture.solde_restant <= 0:
             facture.statut = 'payee'
             facture.save()
-            messages.success(request, "Paiement enregistré avec succès ✅")
+            messages.success(request, "Paiement enregistré avec succès ")
         return redirect('paiement_list')
     return render(request, 'paiements/paiement_form.html', {
         'factures': factures,
@@ -46,6 +46,6 @@ def paiement_delete(request, pk):
     paiement = get_object_or_404(Paiement, pk=pk)
     if request.method == 'POST':
         paiement.delete()
-        messages.success(request, "Paiement supprimé ✅")
+        messages.success(request, "Paiement supprimé ")
         return redirect('paiement_list')
     return render(request, 'confirm_delete.html', {'object': paiement, 'cancel_url': '/paiements/'})

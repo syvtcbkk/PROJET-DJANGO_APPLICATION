@@ -174,7 +174,6 @@
                         <input type="checkbox" name="remember_me" style="width: auto;">
                         <span style="font-weight: normal; font-size: 0.9rem; color: #7f8c8d;">Se souvenir de moi</span>
                     </label>
-                    <a href="#" style="font-size: 0.9rem; color: #3498db; text-decoration: none;">Mot de passe oublié ?</a>
                 </div>
 
                 <button type="submit" class="btn-login">
@@ -186,6 +185,7 @@
         </div>
         
         <div class="login-footer">
+            <p><a href="{% url 'password_reset' %}">Mot de passe oublié ?</a></p>
             <p>© 2026 Gestion Facturation. Tous droits réservés.</p>
         </div>
     </div>

@@ -27,6 +27,22 @@
             align-items: center;
             gap: 0.5rem;
         }
+        .navbar .nav-links .btn-home {
+            background: rgba(255,255,255,0.15);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .navbar .nav-links .btn-home:hover {
+            background: rgba(255,255,255,0.25);
+            transform: translateY(-1px);
+        }
         .navbar a {
             color: rgba(255,255,255,0.85);
             text-decoration: none;
@@ -196,6 +212,7 @@
     <nav class="navbar">
         <div class="brand">Gestion Facturation</div>
         <div class="nav-links">
+            <a href="{% url 'dashboard' %}" class="btn-home">Dashboard</a>
             <a href="{% url 'client_list' %}">Clients</a>
             <a href="{% url 'facture_list' %}">Factures</a>
             <a href="{% url 'paiement_list' %}">Paiements</a>

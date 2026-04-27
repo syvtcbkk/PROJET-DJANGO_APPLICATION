@@ -1,34 +1,247 @@
 {% extends 'base.html' %}
 
-{% block title %}Dashboard{% endblock %}
+{% block title %}Dashboard - Gestion Facturation{% endblock %}
 
 {% block content %}
-<div class="stats">
-    <div class="stat-card">
-        <h3>{{ nb_clients }}</h3>
-        <p>Clients</p>
+<style>
+    .dashboard-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+    }
+    .dashboard-header h1 {
+        color: #2c3e50;
+        font-size: 1.8rem;
+    }
+    .dashboard-header .date {
+        color: #7f8c8d;
+        font-size: 0.95rem;
+    }
+    
+    /* Stats Cards */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    .stat-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .stat-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    }
+    .stat-card .icon {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+    }
+    .stat-card .value {
+        font-size: 1.8rem;
+        font-weight: bold;
+        color: #2c3e50;
+        margin-bottom: 0.25rem;
+    }
+    .stat-card .label {
+        color: #7f8c8d;
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+    .stat-card.clients { border-left: 4px solid #3498db; }
+    .stat-card.factures { border-left: 4px solid #9b59b6; }
+    .stat-card.paye { border-left: 4px solid #27ae60; }
+    .stat-card.impaye { border-left: 4px solid #e74c3c; }
+    
+    /* Content Grid */
+    .content-grid {
+        display: grid;
+        grid-template-columns: 1.5fr 1fr;
+        gap: 1.5rem;
+    }
+    
+    /* Cards */
+    .card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    .card h2 {
+        color: #2c3e50;
+        font-size: 1.3rem;
+        margin-bottom: 1rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 2px solid #ecf0f1;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    /* Tables */
+    .card table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    .card th, .card td {
+        padding: 12px;
+        text-align: left;
+        border-bottom: 1px solid #ecf0f1;
+    }
+    .card th {
+        background: #34495e;
+        color: white;
+        font-weight: 600;
+        font-size: 0.85rem;
+    }
+    .card tr:hover {
+        background: #f8f9fa;
+    }
+    .card .facture-num {
+        font-weight: 600;
+        color: #3498db;
+    }
+    .card .client-name {
+        color: #2c3e50;
+    }
+    .card .montant {
+        font-weight: 600;
+        color: #27ae60;
+    }
+    
+    /* Status badges */
+    .status {
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 500;
+    }
+    .status.payee { background: #d5f4e6; color: #27ae60; }
+    .status.envoyee { background: #d6eaf8; color: #3498db; }
+    .status.brouillon { background: #f4f4f4; color: #7f8c8d; }
+    
+    /* Quick Actions */
+    .quick-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+    .quick-action-btn {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem;
+        background: #f8f9fa;
+        border-radius: 8px;
+        text-decoration: none;
+        color: #2c3e50;
+        transition: all 0.3s ease;
+    }
+    .quick-action-btn:hover {
+        background: #3498db;
+        color: white;
+        transform: translateX(5px);
+    }
+    .quick-action-btn .icon {
+        font-size: 1.5rem;
+    }
+    .quick-action-btn .text {
+        font-weight: 500;
+    }
+    .quick-action-btn .desc {
+        font-size: 0.85rem;
+        opacity: 0.8;
+    }
+    
+    /* Progress bar */
+    .progress-section {
+        margin-top: 1rem;
+    }
+    .progress-label {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 0.5rem;
+        font-size: 0.9rem;
+    }
+    .progress-bar {
+        height: 8px;
+        background: #ecf0f1;
+        border-radius: 4px;
+        overflow: hidden;
+    }
+    .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #27ae60, #2ecc71);
+        border-radius: 4px;
+        transition: width 0.5s ease;
+    }
+    
+    /* Responsive */
+    @media (max-width: 1024px) {
+        .stats-grid { grid-template-columns: repeat(2, 1fr); }
+        .content-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 768px) {
+        .stats-grid { grid-template-columns: 1fr; }
+    }
+</style>
+
+<div class="dashboard-header">
+    <h1>Dashboard</h1>
+    <span class="date">{% now "d/m/Y" %}</span>
+</div>
+
+<!-- Stats Cards -->
+<div class="stats-grid">
+    <div class="stat-card clients">
+        <div class="icon"></div>
+        <div class="value">{{ nb_clients }}</div>
+        <div class="label">Total Clients</div>
     </div>
-    <div class="stat-card">
-        <h3>{{ total_facture }} FCFA</h3>
-        <p>Total Factures</p>
+    <div class="stat-card factures">
+        <div class="icon"></div>
+        <div class="value">{{ total_facture|floatformat:0 }} FCFA</div>
+        <div class="label">Total Factures</div>
     </div>
-    <div class="stat-card">
-        <h3>{{ total_paye }} FCFA</h3>
-        <p>Total Payé</p>
+    <div class="stat-card paye">
+        <div class="icon"></div>
+        <div class="value">{{ total_paye|floatformat:0 }} FCFA</div>
+        <div class="label">Total Payé</div>
     </div>
-    <div class="stat-card">
-        <h3>{{ total_impaye }} FCFA</h3>
-        <p>Total Impayé</p>
+    <div class="stat-card impaye">
+        <div class="icon"></div>
+        <div class="value">{{ total_impaye|floatformat:0 }} FCFA</div>
+        <div class="label">Total Impayé</div>
     </div>
 </div>
 
-<div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
+<!-- Progress -->
+<div class="card" style="margin-bottom: 1.5rem;">
+    <h2>Taux de paiement</h2>
+    <div class="progress-section">
+        <div class="progress-label">
+            <span>Montant payé</span>
+            <span>{{ taux_paiement|floatformat:1 }}%</span>
+        </div>
+        <div class="progress-bar">
+            <div class="progress-fill" style="width: {{ taux_paiement|floatformat:0 }}%;"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Content Grid -->
+<div class="content-grid">
+    <!-- Factures -->
     <div class="card">
-        <h2>Dernières Factures</h2>
+        <h2>📄 Dernières Factures</h2>
         <table>
             <thead>
                 <tr>
-                    <th>N°</th>
+                    <th>N° Facture</th>
                     <th>Client</th>
                     <th>Date</th>
                     <th>Montant</th>
@@ -38,54 +251,81 @@
             <tbody>
                 {% for facture in dernieres_factures %}
                 <tr>
-                    <td>FAC-{{ facture.pk|stringformat:"04d" }}</td>
-                    <td>{{ facture.client.nom }}</td>
-                    <td>{{ facture.date }}</td>
-                    <td>{{ facture.montant_total }} FCFA</td>
+                    <td><span class="facture-num">FAC-{{ facture.pk|stringformat:"04d" }}</span></td>
+                    <td><span class="client-name">{{ facture.client.nom }}</span></td>
+                    <td>{{ facture.date|date:"d/m/Y" }}</td>
+                    <td><span class="montant">{{ facture.montant_total|floatformat:0 }} FCFA</span></td>
                     <td>
-                        <span style="padding: 0.25rem 0.5rem; border-radius: 4px; 
-                            {% if facture.statut == 'payee' %}background: #27ae60; color: white;
-                            {% elif facture.statut == 'envoyee' %}background: #3498db; color: white;
-                            {% else %}background: #95a5a6; color: white;{% endif %}">
+                        <span class="status {{ facture.statut }}">
                             {{ facture.get_statut_display }}
                         </span>
                     </td>
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="5" style="text-align: center;">Aucune facture</td>
+                    <td colspan="5" style="text-align: center; color: #7f8c8d;">Aucune facture</td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
     
-    <div class="card">
-        <h2>Derniers Paiements</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>Date</th>
-                    <th>Facture</th>
-                    <th>Montant</th>
-                    <th>Mode</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for paiement in derniers_paiements %}
-                <tr>
-                    <td>{{ paiement.date }}</td>
-                    <td>FAC-{{ paiement.facture.pk|stringformat:"04d" }}</td>
-                    <td>{{ paiement.montant }} FCFA</td>
-                    <td>{{ paiement.get_mode_display }}</td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="4" style="text-align: center;">Aucun paiement</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+    <!-- Sidebar -->
+    <div>
+        <!-- Quick Actions -->
+        <div class="card" style="margin-bottom: 1.5rem;">
+            <h2>⚡ Actions rapides</h2>
+            <div class="quick-actions">
+                <a href="{% url 'facture_create' %}" class="quick-action-btn">
+                    <span class="icon">➕</span>
+                    <div class="text">
+                        <div>Nouvelle Facture</div>
+                        <div class="desc">Créer une nouvelle facture</div>
+                    </div>
+                </a>
+                <a href="{% url 'client_create' %}" class="quick-action-btn">
+                    <span class="icon">👤</span>
+                    <div class="text">
+                        <div>Nouveau Client</div>
+                        <div class="desc">Ajouter un client</div>
+                    </div>
+                </a>
+                <a href="{% url 'paiement_create' %}" class="quick-action-btn">
+                    <span class="icon">💳</span>
+                    <div class="text">
+                        <div>Nouveau Paiement</div>
+                        <div class="desc">Enregistrer un paiement</div>
+                    </div>
+                </a>
+            </div>
+        </div>
+        
+        <!-- Derniers Paiements -->
+        <div class="card">
+            <h2>Derniers Paiements</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Facture</th>
+                        <th>Montant</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for paiement in derniers_paiements %}
+                    <tr>
+                        <td>{{ paiement.date|date:"d/m/Y" }}</td>
+                        <td>FAC-{{ paiement.facture.pk|stringformat:"04d" }}</td>
+                        <td><span class="montant">{{ paiement.montant|floatformat:0 }} FCFA</span></td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="3" style="text-align: center; color: #7f8c8d;">Aucun paiement</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
 {% endblock %}
