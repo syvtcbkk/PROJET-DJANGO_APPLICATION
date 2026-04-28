@@ -178,23 +178,26 @@
         </div>
     </div>
 
-    <div class="card" style="background: #f8fafc; border: 1px dashed #cbd5e1;">
-        <h3 style="margin-top:0;"><i class="fas fa-shield-alt"></i> Accès Rapides</h3>
-        <div style="display: grid; grid-template-columns: 1fr; gap: 0.8rem; margin-top: 1.5rem;">
-            <a href="/admin/" class="btn" style="background: var(--dark); color: white; text-align: left; padding: 1rem;">
-                <i class="fab fa-python" style="margin-right: 10px; color: #ffd43b;"></i> Panneau Django
+    <div class="card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none;">
+        <h3 style="margin-top:0; color: white;"><i class="fas fa-bolt"></i> Actions Rapides</h3>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; margin-top: 1.5rem;">
+            <a href="{% url 'facture_create' %}" class="btn" style="background: white; color: #667eea; text-align: center; padding: 1rem; border-radius: 10px; font-weight: 600;">
+                <i class="fas fa-file-invoice-dollar" style="margin-right: 8px;"></i> Nouvelle Facture
             </a>
-            <a href="{% url 'client_create' %}" class="btn" style="background: white; border: 1px solid #e2e8f0; color: var(--dark); text-align: left; padding: 1rem;">
-                <i class="fas fa-plus-circle" style="margin-right: 10px; color: var(--primary);"></i> Nouveau Client
+            <a href="{% url 'paiement_list' %}" class="btn" style="background: white; color: #27ae60; text-align: center; padding: 1rem; border-radius: 10px; font-weight: 600;">
+                <i class="fas fa-money-bill-wave" style="margin-right: 8px;"></i> Enregistrer Paiement
             </a>
-            <a href="{% url 'facture_create' %}" class="btn" style="background: white; border: 1px solid #e2e8f0; color: var(--dark); text-align: left; padding: 1rem;">
-                <i class="fas fa-file-invoice-dollar" style="margin-right: 10px; color: var(--success);"></i> Émettre Facture
+            <a href="{% url 'client_create' %}" class="btn" style="background: white; color: #3498db; text-align: center; padding: 1rem; border-radius: 10px; font-weight: 600;">
+                <i class="fas fa-user-plus" style="margin-right: 8px;"></i> Nouveau Client
             </a>
-            <div style="margin-top: 1rem; padding: 1rem; background: #ebf5ff; border-radius: 8px;">
-                <p style="margin:0; font-size: 0.8rem; color: #2b6cb0;">
-                    <i class="fas fa-info-circle"></i> <strong>Note :</strong> Seuls les administrateurs peuvent voir cette page et accéder aux outils système.
-                </p>
-            </div>
+            <a href="{% url 'client_list' %}" class="btn" style="background: white; color: #9b59b6; text-align: center; padding: 1rem; border-radius: 10px; font-weight: 600;">
+                <i class="fas fa-users" style="margin-right: 8px;"></i> Voir Clients
+            </a>
+        </div>
+        <div style="margin-top: 1rem; padding: 0.8rem; background: rgba(255,255,255,0.15); border-radius: 8px;">
+            <p style="margin:0; font-size: 0.75rem; color: white;">
+                <i class="fas fa-chart-line"></i> <strong>Statut:</strong> {{ nb_envoyee }} factures en attente de paiement
+            </p>
         </div>
     </div>
 </div>

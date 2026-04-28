@@ -165,7 +165,7 @@
                 <a href="{% url 'dashboard' %}"><i class="fas fa-chart-line"></i> Mon Dashboard</a>
             {% endif %}
 
-            {% if user.is_staff %}
+            {% if user.profile.role == 'admin' %}
                 <a href="{% url 'admin_dashboard' %}" style="color: var(--warning);"><i class="fas fa-user-shield"></i> Admin</a>
             {% endif %}
 
