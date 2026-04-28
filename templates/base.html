@@ -158,11 +158,11 @@
     <div class="nav-links">
         {% if user.is_authenticated %}
             {% if user.profile.role != 'client' %} 
-                <a href="{% url 'client_list' %}"><i class="fas fa-users"></i> Clients</a>
-                <a href="{% url 'facture_list' %}"><i class="fas fa-file-alt"></i> Factures</a>
-                <a href="{% url 'paiement_list' %}"><i class="fas fa-credit-card"></i> Paiements</a>
+                <a href="{% url 'client_list' %}"><i class="fas fa-users"></i>Clients</a>
+                <a href="{% url 'facture_list' %}"><i class="fas fa-file-alt"></i>Factures</a>
+                <a href="{% url 'paiement_list' %}"><i class="fas fa-credit-card"></i>Paiements</a>
             {% else %}
-                <a href="{% url 'dashboard' %}"><i class="fas fa-chart-line"></i> Mon Dashboard</a>
+                <a href="{% url 'dashboard' %}"><i class="fas fa-chart-line"></i>Mon Dashboard</a>
             {% endif %}
 
             {% if user.profile.role == 'admin' %}

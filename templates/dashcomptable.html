@@ -3,37 +3,36 @@
 {% block content %}
 
 <div class="page-header">
-    <h1>📊 Dashboard Comptable - {{ request.user.username }}</h1>
+    <h1>Dashboard Comptable - {{ request.user.username }}</h1>
     <span style="color:#7f8c8d;">{{ today|date:"d/m/Y" }}</span>
 </div>
 
 <!-- Stats du Jour -->
 <div class="stats-grid">
     <div class="stat-card clients">
-        <div class="icon">📅</div>
+        <div class="icon"></div>
         <div class="value">{{ nb_factures_jour }}</div>
         <div class="label">Factures Aujourd'hui</div>
     </div>
     <div class="stat-card factures">
-        <div class="icon">💵</div>
+        <div class="icon"></div>
         <div class="value">{{ total_jour|floatformat:0 }} FCA</div>
         <div class="label">Encaissé Aujourd'hui</div>
     </div>
     <div class="stat-card paye">
-        <div class="icon">✅</div>
+        <div class="icon"></div>
         <div class="value">{{ nb_paiements_jour }}</div>
         <div class="label">Paiements Aujourd'hui</div>
     </div>
     <div class="stat-card impaye">
-        <div class="icon">⏳</div>
+        <div class="icon"></div>
         <div class="value">{{ nb_en_attente }}</div>
         <div class="label">Factures en Attente</div>
     </div>
 </div>
 
-<!-- Résumé Rapide -->
 <div class="card" style="margin-bottom: 1.5rem;">
-    <h2>📋 Résumé du Jour</h2>
+    <h2>Résumé du Jour</h2>
     <div style="display: flex; gap: 2rem; padding: 1rem 0;">
         <div style="text-align: center;">
             <div style="font-size: 1.5rem; font-weight: bold; color: #3498db;">{{ nb_factures_jour }}</div>
@@ -52,7 +51,7 @@
 
 <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.5rem;">
     <div class="card">
-        <h2>📄 Factures à Traiter</h2>
+        <h2>Factures à Traiter</h2>
         <table>
             <thead>
                 <tr><th>N°</th><th>Client</th><th>Montant</th><th>Statut</th></tr>
@@ -77,7 +76,7 @@
         </div>
     </div>
     <div class="card">
-        <h2>💳 Derniers Paiements</h2>
+        <h2>Derniers Paiements</h2>
         <table>
             <thead>
                 <tr><th>Date</th><th>Facture</th><th>Montant</th><th>Mode</th></tr>
@@ -101,7 +100,6 @@
     </div>
 </div>
 
-<!-- Actions Comptable -->
 <div class="card" style="margin-top: 1.5rem;">
     <h2>⚡ Actions Rapides</h2>
     <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 1rem;">
